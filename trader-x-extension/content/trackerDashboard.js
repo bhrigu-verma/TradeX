@@ -49,26 +49,31 @@ class TrackerDashboard {
     dashboard.id = 'traderx-tracker-dashboard';
     dashboard.innerHTML = `
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
         #traderx-tracker-dashboard {
           position: fixed;
           top: 80px;
           left: 20px;
-          width: 240px;
-          background: rgba(15, 23, 42, 0.85); /* Slate 900 / 85% */
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(51, 65, 85, 0.5); /* Slate 700 */
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          width: 280px;
+          max-height: 500px;
+          background: linear-gradient(180deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 40, 56, 0.95) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 2px solid #2ec4b6;
+          border-radius: 20px;
+          box-shadow: 0 10px 40px rgba(46, 196, 182, 0.2), 0 4px 20px rgba(0, 0, 0, 0.4);
           z-index: 9998;
-          font-family: "Inter", -apple-system, sans-serif;
-          color: #F8FAFC;
+          font-family: 'Inter', -apple-system, sans-serif;
+          color: #ffffff;
           overflow: hidden;
           transition: all 0.3s ease;
+          resize: both;
         }
         
         #traderx-tracker-dashboard.minimized {
-          height: 44px;
+          height: 52px;
+          max-height: 52px;
         }
         
         #traderx-tracker-dashboard.hidden {
@@ -79,150 +84,207 @@ class TrackerDashboard {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
-          background: rgba(30, 41, 59, 0.5);
-          border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-          cursor: pointer;
+          padding: 14px 18px;
+          background: linear-gradient(135deg, #ff9f1c 0%, #ffbf69 100%);
+          cursor: grab;
+          user-select: none;
+          border-radius: 18px 18px 0 0;
+        }
+        
+        .td-header:active {
+          cursor: grabbing;
         }
         
         .td-title {
           font-size: 13px;
-          font-weight: 600;
-          color: #E2E8F0;
+          font-weight: 700;
+          color: #0d1b2a;
           display: flex;
           align-items: center;
           gap: 8px;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
+        }
+        
+        .td-title svg {
+          stroke: #0d1b2a;
         }
         
         .td-controls {
           display: flex;
-          gap: 8px;
+          gap: 6px;
         }
         
         .td-btn {
-          background: transparent;
+          background: rgba(0, 0, 0, 0.15);
           border: none;
-          color: #94A3B8;
+          color: #0d1b2a;
           cursor: pointer;
-          padding: 2px;
+          padding: 6px;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: color 0.2s;
+          transition: all 0.2s;
+          border-radius: 8px;
         }
         
         .td-btn:hover {
-          color: #F8FAFC;
+          background: rgba(0, 0, 0, 0.25);
+          transform: scale(1.1);
         }
         
         .td-content {
-          padding: 12px;
+          padding: 14px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
+          max-height: 380px;
+          overflow-y: auto;
+          overflow-x: hidden;
         }
         
-        /* Cards */
+        .td-content::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .td-content::-webkit-scrollbar-track {
+          background: rgba(46, 196, 182, 0.1);
+          border-radius: 3px;
+        }
+        
+        .td-content::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #2ec4b6 0%, #1aa198 100%);
+          border-radius: 3px;
+        }
+        
+        /* Cards - Enhanced Design */
         .td-card {
-          background: rgba(30, 41, 59, 0.4);
-          border: 1px solid rgba(51, 65, 85, 0.4);
-          border-radius: 8px;
-          padding: 10px 12px;
-          transition: all 0.2s;
+          background: linear-gradient(135deg, rgba(46, 196, 182, 0.1) 0%, rgba(203, 243, 240, 0.05) 100%);
+          border: 1px solid rgba(46, 196, 182, 0.3);
+          border-radius: 14px;
+          padding: 14px 16px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .td-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          transition: left 0.5s;
+        }
+        
+        .td-card:hover::before {
+          left: 100%;
         }
         
         .td-card:hover {
-          background: rgba(30, 41, 59, 0.7);
-          border-color: #00ADB5;
-          transform: translateX(2px);
-          box-shadow: 0 0 0 1px rgba(0, 173, 181, 0.3);
+          border-color: #ff9f1c;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(255, 159, 28, 0.2);
         }
         
         .td-card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
+          margin-bottom: 10px;
         }
         
         .td-ticker-info {
           display: flex;
           align-items: baseline;
           flex-wrap: wrap;
-          gap: 2px;
+          gap: 4px;
         }
         
         .td-ticker {
           font-family: inherit;
-          font-weight: 700;
-          font-size: 14px;
-          color: #F8FAFC;
+          font-weight: 800;
+          font-size: 16px;
+          color: #ffffff;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
         .td-card.volume-spike {
-          border-color: #F59E0B !important;
-          box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+          border-color: #ff9f1c !important;
+          box-shadow: 0 0 20px rgba(255, 159, 28, 0.4);
+          animation: volumePulse 2s infinite;
         }
         
-        .td-card.volume-spike::before {
+        @keyframes volumePulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 159, 28, 0.4); }
+          50% { box-shadow: 0 0 30px rgba(255, 159, 28, 0.6); }
+        }
+        
+        .td-card.volume-spike::after {
           content: '🔥';
           position: absolute;
-          top: -6px;
-          right: -6px;
-          font-size: 12px;
+          top: 8px;
+          right: 8px;
+          font-size: 14px;
+          animation: fireGlow 1s infinite alternate;
+        }
+        
+        @keyframes fireGlow {
+          from { filter: brightness(1); }
+          to { filter: brightness(1.3); }
         }
         
         .td-badge {
           font-size: 10px;
           font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 4px;
+          padding: 4px 10px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           gap: 4px;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
         }
         
         .td-badge.bullish {
-          background: rgba(16, 185, 129, 0.15); /* Emerald */
-          color: #34D399;
-          border: 1px solid rgba(16, 185, 129, 0.2);
+          background: linear-gradient(135deg, rgba(46, 196, 182, 0.25) 0%, rgba(46, 196, 182, 0.15) 100%);
+          color: #2ec4b6;
+          border: 1px solid rgba(46, 196, 182, 0.4);
         }
         
         .td-badge.bearish {
-          background: rgba(239, 68, 68, 0.15); /* Red */
-          color: #F87171;
-          border: 1px solid rgba(239, 68, 68, 0.2);
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.15) 100%);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.4);
         }
         
         .td-badge.neutral {
-          background: rgba(148, 163, 184, 0.15); /* Slate */
-          color: #94A3B8;
-          border: 1px solid rgba(148, 163, 184, 0.2);
+          background: linear-gradient(135deg, rgba(203, 243, 240, 0.2) 0%, rgba(203, 243, 240, 0.1) 100%);
+          color: #cbf3f0;
+          border: 1px solid rgba(203, 243, 240, 0.3);
         }
         
         .td-badge.volatile {
-          background: rgba(245, 158, 11, 0.15); /* Amber */
-          color: #FBBF24;
-          border: 1px solid rgba(245, 158, 11, 0.2);
+          background: linear-gradient(135deg, rgba(255, 159, 28, 0.25) 0%, rgba(255, 159, 28, 0.15) 100%);
+          color: #ffbf69;
+          border: 1px solid rgba(255, 159, 28, 0.4);
         }
         
         .td-meter {
-          height: 3px;
-          background: #334155;
-          border-radius: 2px;
+          height: 4px;
+          background: rgba(203, 243, 240, 0.2);
+          border-radius: 4px;
           overflow: hidden;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
           position: relative;
         }
         
         .td-meter-fill {
           height: 100%;
-          border-radius: 2px;
+          border-radius: 4px;
           transition: all 0.5s ease;
           position: absolute;
           top: 0;
@@ -230,9 +292,9 @@ class TrackerDashboard {
         
         /* Center origin meter */
         .td-meter-center {
-          width: 1px;
+          width: 2px;
           height: 100%;
-          background: #475569;
+          background: rgba(255, 255, 255, 0.3);
           position: absolute;
           left: 50%;
           top: 0;
@@ -242,16 +304,16 @@ class TrackerDashboard {
         .td-meta {
           display: flex;
           justify-content: space-between;
-          font-size: 10px;
-          color: #64748B;
+          font-size: 11px;
+          color: rgba(203, 243, 240, 0.7);
           font-feature-settings: "tnum";
           font-variant-numeric: tabular-nums;
         }
         
         .td-footer {
-          padding: 8px 12px;
-          background: rgba(15, 23, 42, 0.4);
-          border-top: 1px solid rgba(51, 65, 85, 0.5);
+          padding: 10px 16px;
+          background: linear-gradient(180deg, transparent 0%, rgba(46, 196, 182, 0.15) 100%);
+          border-top: 1px solid rgba(46, 196, 182, 0.2);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -260,21 +322,31 @@ class TrackerDashboard {
         .td-status {
           display: flex;
           align-items: center;
-          gap: 6px;
-          font-size: 10px;
-          color: #64748B;
+          gap: 8px;
+          font-size: 11px;
+          color: #cbf3f0;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
         
         .td-dot {
-          width: 6px;
-          height: 6px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          background: #10B981;
+          background: #2ec4b6;
+          box-shadow: 0 0 10px rgba(46, 196, 182, 0.6);
+          animation: livePulse 2s infinite;
+        }
+        
+        @keyframes livePulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
         }
         
         .td-dot.loading {
-          background: #F59E0B;
-          box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+          background: #ff9f1c;
+          box-shadow: 0 0 10px rgba(255, 159, 28, 0.6);
         }
       </style>
       
@@ -457,8 +529,55 @@ class TrackerDashboard {
       this.toggleMinimize();
     });
 
-    document.getElementById('td-header').addEventListener('click', (e) => {
-      if (!e.target.closest('button')) this.toggleMinimize();
+    // Dragging functionality
+    const header = document.getElementById('td-header');
+    const dashboard = this.element;
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+
+    header.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button')) return; // Don't drag when clicking buttons
+
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = dashboard.getBoundingClientRect();
+      initialX = rect.left;
+      initialY = rect.top;
+
+      header.style.cursor = 'grabbing';
+      dashboard.style.transition = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      e.preventDefault();
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+
+      let newX = initialX + deltaX;
+      let newY = initialY + deltaY;
+
+      // Keep within viewport bounds
+      const maxX = window.innerWidth - dashboard.offsetWidth;
+      const maxY = window.innerHeight - dashboard.offsetHeight;
+
+      newX = Math.max(0, Math.min(newX, maxX));
+      newY = Math.max(0, Math.min(newY, maxY));
+
+      dashboard.style.left = newX + 'px';
+      dashboard.style.top = newY + 'px';
+      dashboard.style.right = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        header.style.cursor = 'grab';
+        dashboard.style.transition = 'all 0.3s ease';
+      }
     });
 
     document.getElementById('td-refresh').addEventListener('click', (e) => {

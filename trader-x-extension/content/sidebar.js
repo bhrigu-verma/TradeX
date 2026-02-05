@@ -6,19 +6,19 @@
 // ============================================================================
 
 class TraderXSidebar {
-    constructor() {
-        this.isVisible = false;
-        this.trustedMode = localStorage.getItem('traderx_trusted_mode') === 'true';
-        this.createSidebar();
-        this.injectStyles();
-    }
+  constructor() {
+    this.isVisible = false;
+    this.trustedMode = localStorage.getItem('traderx_trusted_mode') === 'true';
+    this.createSidebar();
+    this.injectStyles();
+  }
 
-    // ========================================================================
-    // STYLES
-    // ========================================================================
-    injectStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
+  // ========================================================================
+  // STYLES
+  // ========================================================================
+  injectStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
       #traderx-sidebar {
         position: fixed;
         top: 0;
@@ -254,17 +254,17 @@ class TraderXSidebar {
         background: #2563EB;
       }
     `;
-        document.head.appendChild(style);
-    }
+    document.head.appendChild(style);
+  }
 
-    // ========================================================================
-    // COMPONENT
-    // ========================================================================
-    createSidebar() {
-        const sidebar = document.createElement('div');
-        sidebar.id = 'traderx-sidebar';
+  // ========================================================================
+  // COMPONENT
+  // ========================================================================
+  createSidebar() {
+    const sidebar = document.createElement('div');
+    sidebar.id = 'traderx-sidebar';
 
-        sidebar.innerHTML = `
+    sidebar.innerHTML = `
       <div class="tx-header">
         <div class="tx-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -322,6 +322,28 @@ class TraderXSidebar {
         </button>
       </div>
       
+      <div class="tx-controls" style="padding-top: 0;">
+        <div class="tx-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Export Page Tweets
+        </div>
+        
+        <button class="tx-btn" id="tx-copy-json" style="background: #7C3AED; color: white;">
+          📋 Copy as JSON
+        </button>
+        
+        <button class="tx-btn" id="tx-copy-csv" style="background: #059669; color: white;">
+          📊 Export to CSV
+        </button>
+        
+        <button class="tx-btn" id="tx-copy-ai" style="background: #2563EB; color: white;">
+          🤖 Copy for AI Analysis
+        </button>
+      </div>
+      
       <div class="tx-footer">
         <div class="tx-credits">
           Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="tx-link">Bhrigu Verma</a>
@@ -329,74 +351,236 @@ class TraderXSidebar {
       </div>
     `;
 
-        document.body.appendChild(sidebar);
 
-        // Add floating trigger button
-        const trigger = document.createElement('button');
-        trigger.id = 'tx-trigger';
-        trigger.innerHTML = `
+    document.body.appendChild(sidebar);
+
+    // Add floating trigger button
+    const trigger = document.createElement('button');
+    trigger.id = 'tx-trigger';
+    trigger.innerHTML = `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="9" y1="3" x2="9" y2="21"></line>
       </svg>
     `;
-        trigger.addEventListener('click', () => this.toggle());
-        document.body.appendChild(trigger);
+    trigger.addEventListener('click', () => this.toggle());
+    document.body.appendChild(trigger);
 
-        this.setupListeners();
+    this.setupListeners();
+  }
+
+  setupListeners() {
+    // Close button
+    document.getElementById('tx-close-btn').addEventListener('click', () => this.close());
+
+    // Trusted Toggle
+    document.getElementById('tx-trusted-toggle').addEventListener('change', (e) => {
+      this.trustedMode = e.target.checked;
+      window.traderXToggleTrustedMode(this.trustedMode);
+    });
+
+    // Advanced Search
+    document.getElementById('tx-adv-search').addEventListener('click', () => {
+      if (window.traderXSearch) {
+        window.traderXSearch.createSearchUI();
+        this.close();
+      }
+    });
+
+    // Directory
+    document.getElementById('tx-directory-open').addEventListener('click', () => {
+      if (window.TraderXDirectory) {
+        window.TraderXDirectory.show();
+        this.close();
+      }
+    });
+
+    // Tracker Toggle
+    document.getElementById('tx-tracker-toggle').addEventListener('click', () => {
+      if (window.TraderXTrackerDashboard) {
+        window.TraderXTrackerDashboard.toggle();
+      }
+    });
+
+    // Export buttons
+    document.getElementById('tx-copy-json').addEventListener('click', () => this.copyTweetsAsJSON());
+    document.getElementById('tx-copy-csv').addEventListener('click', () => this.exportTweetsAsCSV());
+    document.getElementById('tx-copy-ai').addEventListener('click', () => this.copyTweetsForAI());
+  }
+
+  // ========================================================================
+  // EXPORT FUNCTIONS
+  // ========================================================================
+
+  extractTweetsFromPage() {
+    const tweets = document.querySelectorAll('article[data-testid="tweet"]');
+    const tweetData = [];
+
+    tweets.forEach((tweet, index) => {
+      const authorEl = tweet.querySelector('[data-testid="User-Name"]');
+      const author = authorEl ? authorEl.textContent.split('@')[1]?.split('·')[0]?.trim() : 'Unknown';
+
+      const tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
+      const text = tweetTextEl ? tweetTextEl.textContent : '';
+
+      const timeEl = tweet.querySelector('time');
+      const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
+
+      const replyEl = tweet.querySelector('[data-testid="reply"]');
+      const retweetEl = tweet.querySelector('[data-testid="retweet"]');
+      const likeEl = tweet.querySelector('[data-testid="like"]');
+
+      const replies = this.parseNumber(replyEl?.textContent?.trim() || '0');
+      const retweets = this.parseNumber(retweetEl?.textContent?.trim() || '0');
+      const likes = this.parseNumber(likeEl?.textContent?.trim() || '0');
+
+      if (text) {
+        tweetData.push({
+          id: index + 1,
+          author: `@${author}`,
+          timestamp,
+          text,
+          engagement: { replies, retweets, likes },
+          engagementScore: replies + retweets + likes
+        });
+      }
+    });
+
+    return tweetData;
+  }
+
+  parseNumber(str) {
+    if (!str || str === '0') return 0;
+    const num = parseFloat(str);
+    if (str.includes('K')) return Math.round(num * 1000);
+    if (str.includes('M')) return Math.round(num * 1000000);
+    return Math.round(num);
+  }
+
+  async copyTweetsAsJSON() {
+    const tweets = this.extractTweetsFromPage();
+
+    if (tweets.length === 0) {
+      alert('No tweets found on this page!');
+      return;
     }
 
-    setupListeners() {
-        // Close button
-        document.getElementById('tx-close-btn').addEventListener('click', () => this.close());
+    const jsonData = {
+      exportDate: new Date().toISOString(),
+      source: window.location.href,
+      totalTweets: tweets.length,
+      tweets: tweets
+    };
 
-        // Trusted Toggle
-        document.getElementById('tx-trusted-toggle').addEventListener('change', (e) => {
-            this.trustedMode = e.target.checked;
-            window.traderXToggleTrustedMode(this.trustedMode);
-        });
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+      this.showExportSuccess('tx-copy-json', `✓ Copied ${tweets.length} tweets as JSON!`);
+    } catch (error) {
+      alert('Failed to copy. Please try again.');
+    }
+  }
 
-        // Advanced Search
-        document.getElementById('tx-adv-search').addEventListener('click', () => {
-            if (window.traderXSearch) {
-                window.traderXSearch.createSearchUI();
-                this.close();
-            }
-        });
+  async exportTweetsAsCSV() {
+    const tweets = this.extractTweetsFromPage();
 
-        // Directory
-        document.getElementById('tx-directory-open').addEventListener('click', () => {
-            if (window.TraderXDirectory) {
-                window.TraderXDirectory.show();
-                this.close();
-            }
-        });
-
-        // Tracker Toggle
-        document.getElementById('tx-tracker-toggle').addEventListener('click', () => {
-            if (window.TraderXTrackerDashboard) {
-                window.TraderXTrackerDashboard.toggle();
-            }
-        });
+    if (tweets.length === 0) {
+      alert('No tweets found on this page!');
+      return;
     }
 
-    toggle() {
-        const sidebar = document.getElementById('traderx-sidebar');
-        this.isVisible = !this.isVisible;
-        if (this.isVisible) {
-            sidebar.classList.add('visible');
-        } else {
-            sidebar.classList.remove('visible');
-        }
+    let csv = '# Tweet Export\n';
+    csv += `# Date: ${new Date().toLocaleDateString()}\n`;
+    csv += `# Source: ${window.location.href}\n`;
+    csv += `# Total: ${tweets.length} tweets\n\n`;
+    csv += 'Index,Author,Timestamp,Text,Replies,Retweets,Likes,Engagement\n';
+
+    tweets.forEach(t => {
+      const text = t.text.replace(/"/g, '""').replace(/\n/g, ' ');
+      csv += `${t.id},${t.author},"${t.timestamp}","${text}",${t.engagement.replies},${t.engagement.retweets},${t.engagement.likes},${t.engagementScore}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `tweets_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    this.showExportSuccess('tx-copy-csv', `✓ Downloaded ${tweets.length} tweets!`);
+  }
+
+  async copyTweetsForAI() {
+    const tweets = this.extractTweetsFromPage();
+
+    if (tweets.length === 0) {
+      alert('No tweets found on this page!');
+      return;
     }
 
-    close() {
-        this.isVisible = false;
-        document.getElementById('traderx-sidebar').classList.remove('visible');
+    const date = new Date().toLocaleDateString();
+    let formatted = `# Twitter Analysis Data\n`;
+    formatted += `Date: ${date}\n`;
+    formatted += `Source: ${window.location.href}\n`;
+    formatted += `Total Tweets: ${tweets.length}\n\n`;
+    formatted += `---\n\n`;
+    formatted += `## Instructions for AI\n\n`;
+    formatted += `Please analyze these ${tweets.length} tweets and provide:\n`;
+    formatted += `1. Overall sentiment (Bullish/Bearish/Neutral) with percentages\n`;
+    formatted += `2. Key themes and topics discussed\n`;
+    formatted += `3. Notable catalysts or concerns mentioned\n`;
+    formatted += `4. Emerging narratives or patterns\n`;
+    formatted += `5. Summary recommendation\n\n`;
+    formatted += `---\n\n`;
+    formatted += `## Tweets\n\n`;
+
+    tweets.forEach(t => {
+      formatted += `### Tweet ${t.id}\n`;
+      formatted += `**Author:** ${t.author}\n`;
+      formatted += `**Time:** ${t.timestamp}\n`;
+      formatted += `**Engagement:** 💬 ${t.engagement.replies} | 🔁 ${t.engagement.retweets} | ❤️ ${t.engagement.likes}\n\n`;
+      formatted += `**Content:**\n${t.text}\n\n---\n\n`;
+    });
+
+    formatted += `## End of Data\n`;
+
+    try {
+      await navigator.clipboard.writeText(formatted);
+      this.showExportSuccess('tx-copy-ai', `✓ Copied ${tweets.length} tweets for AI!`);
+    } catch (error) {
+      alert('Failed to copy. Please try again.');
     }
+  }
+
+  showExportSuccess(buttonId, message) {
+    const btn = document.getElementById(buttonId);
+    if (btn) {
+      const originalText = btn.innerHTML;
+      btn.innerHTML = message;
+      btn.style.opacity = '0.9';
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.opacity = '1';
+      }, 2000);
+    }
+  }
+
+  toggle() {
+    const sidebar = document.getElementById('traderx-sidebar');
+    this.isVisible = !this.isVisible;
+    if (this.isVisible) {
+      sidebar.classList.add('visible');
+    } else {
+      sidebar.classList.remove('visible');
+    }
+  }
+
+  close() {
+    this.isVisible = false;
+    document.getElementById('traderx-sidebar').classList.remove('visible');
+  }
 }
 
 // Init
 window.addEventListener('load', () => {
-    window.TraderXSidebar = new TraderXSidebar();
+  window.TraderXSidebar = new TraderXSidebar();
 });

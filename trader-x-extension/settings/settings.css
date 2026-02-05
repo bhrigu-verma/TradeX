@@ -54,6 +54,8 @@ body {
   display: flex;
   flex-direction: column;
   padding: 20px 0;
+  position: relative;
+  z-index: 100;
 }
 
 .sidebar-header {

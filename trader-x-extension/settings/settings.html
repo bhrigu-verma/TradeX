@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>TraderX Settings</title>
-  <link rel="stylesheet" href="settings.css?v=6.0">
+  <link rel="stylesheet" href="settings.css?v=7.0">
   <script>
     console.log('[HTML] Inline script executed - JavaScript is working!');
 
@@ -89,7 +89,8 @@
 
       <div class="nav-section">
         <div class="nav-label">Settings</div>
-        <a href="#" class="nav-item active" data-tab="filters" onclick="return switchTab('filters')">
+        <div class="nav-item active" data-tab="filters"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-filters').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -97,8 +98,9 @@
             </svg>
           </span>
           <span>Filters</span>
-        </a>
-        <a href="#" class="nav-item" data-tab="tiers" onclick="return switchTab('tiers')">
+        </div>
+        <div class="nav-item" data-tab="tiers"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-tiers').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -108,8 +110,9 @@
             </svg>
           </span>
           <span>Account Tiers</span>
-        </a>
-        <a href="#" class="nav-item" data-tab="watchlist" onclick="return switchTab('watchlist')">
+        </div>
+        <div class="nav-item" data-tab="watchlist"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-watchlist').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -117,8 +120,9 @@
             </svg>
           </span>
           <span>Watchlist</span>
-        </a>
-        <a href="#" class="nav-item" data-tab="alerts" onclick="return switchTab('alerts')">
+        </div>
+        <div class="nav-item" data-tab="alerts"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-alerts').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -126,12 +130,13 @@
             </svg>
           </span>
           <span>Alerts</span>
-        </a>
+        </div>
       </div>
 
       <div class="nav-section">
         <div class="nav-label">Discover</div>
-        <a href="#" class="nav-item" data-tab="suggested" onclick="return switchTab('suggested')">
+        <div class="nav-item" data-tab="suggested"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-suggested').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon
@@ -140,12 +145,13 @@
             </svg>
           </span>
           <span>Suggested Follows</span>
-        </a>
+        </div>
       </div>
 
       <div class="nav-section">
         <div class="nav-label">Advanced</div>
-        <a href="#" class="nav-item" data-tab="display" onclick="return switchTab('display')">
+        <div class="nav-item" data-tab="display"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-display').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -154,8 +160,9 @@
             </svg>
           </span>
           <span>Display</span>
-        </a>
-        <a href="#" class="nav-item" data-tab="data" onclick="return switchTab('data')">
+        </div>
+        <div class="nav-item" data-tab="data"
+          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-data').classList.add('active');">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -164,7 +171,7 @@
             </svg>
           </span>
           <span>Data & Export</span>
-        </a>
+        </div>
       </div>
 
       <div class="sidebar-footer">

@@ -4,72 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <title>TraderX Settings</title>
-  <link rel="stylesheet" href="settings.css?v=8.0">
-  <script>
-    console.log('[HTML] Inline script executed - JavaScript is working!');
-
-    // GLOBAL switchTab function - must be defined BEFORE nav items
-    window.switchTab = function (tabId) {
-      console.log('[NAV] Switching to:', tabId);
-
-      // Remove active from all nav items
-      var navItems = document.querySelectorAll('.nav-item');
-      for (var i = 0; i < navItems.length; i++) {
-        navItems[i].classList.remove('active');
-      }
-
-      // Add active to clicked nav item
-      var clickedNav = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
-      if (clickedNav) {
-        clickedNav.classList.add('active');
-      }
-
-      // Hide all tab contents
-      var tabs = document.querySelectorAll('.tab-content');
-      for (var j = 0; j < tabs.length; j++) {
-        tabs[j].classList.remove('active');
-      }
-
-      // Show target tab
-      var targetTab = document.getElementById('tab-' + tabId);
-      if (targetTab) {
-        targetTab.classList.add('active');
-        console.log('[NAV] Switched to:', tabId);
-      } else {
-        console.error('[NAV] Tab not found: tab-' + tabId);
-      }
-
-      return false; // Prevent default anchor behavior
-    };
-
-    console.log('[HTML] switchTab function defined');
-
-    // ALSO attach event listeners after DOM is ready (belt and suspenders approach)
-    document.addEventListener('DOMContentLoaded', function () {
-      console.log('[NAV] DOMContentLoaded - attaching click handlers');
-
-      var navItems = document.querySelectorAll('.nav-item[data-tab]');
-      console.log('[NAV] Found', navItems.length, 'nav items');
-
-      navItems.forEach(function (item) {
-        var tabId = item.getAttribute('data-tab');
-        console.log('[NAV] Attaching handler for:', tabId);
-
-        // Remove old onclick to prevent doubles
-        item.onclick = null;
-
-        // Add new click event
-        item.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          window.switchTab(tabId);
-        });
-      });
-
-      console.log('[NAV] All click handlers attached');
-    });
-  </script>
-
+  <link rel="stylesheet" href="settings.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -89,8 +27,7 @@
 
       <div class="nav-section">
         <div class="nav-label">Settings</div>
-        <div class="nav-item active" data-tab="filters"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-filters').classList.add('active');">
+        <div class="nav-item active" data-tab="filters">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -99,8 +36,7 @@
           </span>
           <span>Filters</span>
         </div>
-        <div class="nav-item" data-tab="tiers"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-tiers').classList.add('active');">
+        <div class="nav-item" data-tab="tiers">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -111,8 +47,7 @@
           </span>
           <span>Account Tiers</span>
         </div>
-        <div class="nav-item" data-tab="watchlist"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-watchlist').classList.add('active');">
+        <div class="nav-item" data-tab="watchlist">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -121,8 +56,7 @@
           </span>
           <span>Watchlist</span>
         </div>
-        <div class="nav-item" data-tab="alerts"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-alerts').classList.add('active');">
+        <div class="nav-item" data-tab="alerts">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -135,8 +69,7 @@
 
       <div class="nav-section">
         <div class="nav-label">Discover</div>
-        <div class="nav-item" data-tab="suggested"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-suggested').classList.add('active');">
+        <div class="nav-item" data-tab="suggested">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon
@@ -150,8 +83,7 @@
 
       <div class="nav-section">
         <div class="nav-label">Advanced</div>
-        <div class="nav-item" data-tab="display"
-          onclick="document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));this.classList.add('active');document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.getElementById('tab-display').classList.add('active');">
+        <div class="nav-item" data-tab="display">
           <span class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -614,11 +546,7 @@
     <span id="toast-message">Saved!</span>
   </div>
 
-  <!-- Navigation is now handled by inline onclick handlers and switchTab in head -->
-  <script>
-    console.log('[NAV] Navigation ready - switchTab defined, onclick handlers active');
-  </script>
-
+  <!-- Scripts (order matters: dependencies first, then settings.js) -->
   <script src="../suggested.js"></script>
   <script src="../utils.js"></script>
   <script src="settings.js"></script>

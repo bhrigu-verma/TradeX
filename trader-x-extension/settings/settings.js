@@ -17,8 +17,8 @@ let currentConfig = null;
 async function init() {
   console.log('[Settings] Initializing...');
 
-  // Navigation is handled by inline script in HTML
-  console.log('[Settings] Navigation handled by inline script');
+  // Setup navigation first (must be done via external JS for CSP compliance)
+  setupNavigation();
 
   // Check if we have chrome.storage
   if (typeof chrome === 'undefined' || !chrome.storage) {
@@ -69,12 +69,9 @@ function loadAllSettings() {
 }
 
 // === NAVIGATION ===
-// Navigation is now handled by inline script in HTML for faster loading
-// This function is kept for reference but not used
-/*
 function setupNavigation() {
   console.log('[Settings] Setting up navigation...');
-  const navItems = document.querySelectorAll('.nav-item');
+  const navItems = document.querySelectorAll('.nav-item[data-tab]');
   console.log('[Settings] Found', navItems.length, 'navigation items');
 
   navItems.forEach((item, index) => {
@@ -83,6 +80,7 @@ function setupNavigation() {
 
     item.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       console.log('[Settings] Navigation clicked:', tabId);
 
       // Update nav
@@ -100,8 +98,9 @@ function setupNavigation() {
       }
     });
   });
+
+  console.log('[Settings] Navigation setup complete');
 }
-*/
 
 
 // === LOAD SETTINGS ===
@@ -648,9 +647,29 @@ function setupEventListeners() {
 
 // Initialize
 console.log('[Settings] Script loaded, waiting for DOM...');
+
+function safeInit() {
+  try {
+    console.log('[Settings] safeInit running...');
+    init();
+    console.log('[Settings] safeInit completed successfully');
+  } catch (error) {
+    console.error('[Settings] Init failed with error:', error);
+    // Still try to setup navigation even if other things fail
+    try {
+      setupNavigation();
+      console.log('[Settings] Navigation setup completed (fallback)');
+    } catch (navError) {
+      console.error('[Settings] Navigation setup also failed:', navError);
+    }
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', safeInit);
+  console.log('[Settings] Waiting for DOMContentLoaded...');
 } else {
   // DOM already loaded
-  init();
+  console.log('[Settings] DOM already ready, calling safeInit...');
+  safeInit();
 }

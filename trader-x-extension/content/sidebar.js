@@ -1,9 +1,10 @@
 // ============================================================================
-// TRADERX SIDEBAR - TROPICAL SUNRISE EDITION v2.0
+// TRADERX SIDEBAR - DEEP SEA BLUE EDITION v3.0
 // ============================================================================
-// Premium UI with Tropical Sunrise color palette
-// Colors: #ff9f1c (Orange), #ffbf69 (Light Orange), #ffffff (White), 
-//         #cbf3f0 (Light Cyan), #2ec4b6 (Teal)
+// Premium UI with Deep Sea Blue color palette
+// Colors: #0466c8 (Mid Blue), #0353a4 (Darker Blue), #023e7d (Deep Blue),
+//         #002855 (Navy), #001845 (Midnight), #001233 (Abyssal)
+//         #33415c, #5c677d, #7d8597, #979dac (Greys/Slates)
 // ============================================================================
 
 class TraderXSidebar {
@@ -15,7 +16,7 @@ class TraderXSidebar {
   }
 
   // ========================================================================
-  // STYLES - TROPICAL SUNRISE THEME
+  // STYLES - DEEP SEA BLUE THEME
   // ========================================================================
   injectStyles() {
     const style = document.createElement('style');
@@ -25,18 +26,18 @@ class TraderXSidebar {
       #traderx-sidebar {
         position: fixed;
         top: 0;
-        right: -360px;
-        width: 360px;
+        right: -400px; /* Wider for better spacing */
+        width: 400px;
         height: 100vh;
-        background: linear-gradient(180deg, #0d1b2a 0%, #1b2838 50%, #0d1b2a 100%);
-        border-left: 2px solid #2ec4b6;
+        background: linear-gradient(180deg, #001233 0%, #001845 100%); /* Abyssal to Midnight */
+        border-left: 1px solid #023e7d;
         z-index: 9999;
-        transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: right 0.4s cubic-bezier(0.2, 0, 0, 1);
         display: flex;
         flex-direction: column;
-        color: #ffffff;
+        color: #e0e7ff;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        box-shadow: -20px 0 60px rgba(46, 196, 182, 0.15), -5px 0 30px rgba(0, 0, 0, 0.5);
+        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
         overflow: hidden;
       }
       
@@ -44,156 +45,142 @@ class TraderXSidebar {
         right: 0;
       }
       
-      /* Header - Gradient with accent */
+      /* Header - Deep Navy Gradient */
       .tx-header {
-        padding: 24px;
-        background: linear-gradient(135deg, #ff9f1c 0%, #ffbf69 100%);
+        padding: 28px 32px;
+        background: linear-gradient(135deg, #002855 0%, #001845 100%);
+        border-bottom: 1px solid #023e7d;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        position: relative;
-        overflow: hidden;
-      }
-      
-      .tx-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
-        animation: shimmer 3s infinite;
-      }
-      
-      @keyframes shimmer {
-        0%, 100% { transform: translateX(-10%) rotate(0deg); }
-        50% { transform: translateX(10%) rotate(5deg); }
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       }
       
       .tx-title {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 800;
-        color: #0d1b2a;
+        color: #ffffff;
         display: flex;
         align-items: center;
-        gap: 12px;
-        letter-spacing: -0.03em;
-        text-shadow: 0 2px 10px rgba(255,255,255,0.3);
-        z-index: 1;
+        gap: 16px;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 10px rgba(4, 102, 200, 0.4);
       }
       
       .tx-title-icon {
-        width: 36px;
-        height: 36px;
-        background: #0d1b2a;
-        border-radius: 10px;
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, #0466c8 0%, #023e7d 100%);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 15px rgba(4, 102, 200, 0.3);
       }
       
       .tx-close {
-        background: rgba(0,0,0,0.2);
-        border: none;
-        color: #0d1b2a;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #979dac;
         cursor: pointer;
-        padding: 10px;
-        border-radius: 10px;
-        transition: all 0.3s;
+        padding: 12px;
+        border-radius: 12px;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1;
-        backdrop-filter: blur(10px);
       }
       
       .tx-close:hover {
-        background: rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.2);
         transform: rotate(90deg);
       }
       
-      /* Scrollable Content */
+      /* Content Area */
       .tx-content {
         flex: 1;
         overflow-y: auto;
-        padding-bottom: 20px;
+        padding: 32px; /* Generous padding */
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
       }
       
       .tx-content::-webkit-scrollbar {
-        width: 6px;
+        width: 8px;
       }
       
       .tx-content::-webkit-scrollbar-track {
-        background: transparent;
+        background: #001233;
       }
       
       .tx-content::-webkit-scrollbar-thumb {
-        background: #2ec4b6;
-        border-radius: 3px;
+        background: #33415c;
+        border-radius: 4px;
+        border: 2px solid #001233;
       }
       
-      /* Section Styling */
-      .tx-section {
-        padding: 20px 24px;
-        border-bottom: 1px solid rgba(46, 196, 182, 0.2);
-      }
-      
+      /* Section Headers */
       .tx-section-title {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #2ec4b6;
-        margin-bottom: 16px;
+        letter-spacing: 0.15em;
+        color: #5c677d;
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
       
       .tx-section-title::after {
         content: '';
         flex: 1;
         height: 1px;
-        background: linear-gradient(90deg, rgba(46, 196, 182, 0.5) 0%, transparent 100%);
+        background: #023e7d;
       }
       
-      /* Toggle Card */
-      .tx-toggle-card {
-        background: linear-gradient(135deg, rgba(46, 196, 182, 0.15) 0%, rgba(203, 243, 240, 0.1) 100%);
-        padding: 18px;
+      /* Cards & Containers */
+      .tx-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid #1a2c4e; /* Custom dark border */
         border-radius: 16px;
-        border: 1px solid rgba(46, 196, 182, 0.3);
+        padding: 24px;
+        transition: all 0.3s ease;
+      }
+      
+      .tx-card:hover {
+        border-color: #0466c8;
+        background: rgba(4, 102, 200, 0.05);
+        transform: translateY(-2px);
+      }
+      
+      /* Toggle Row */
+      .tx-toggle-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        transition: all 0.3s;
-      }
-      
-      .tx-toggle-card:hover {
-        border-color: #2ec4b6;
-        box-shadow: 0 0 20px rgba(46, 196, 182, 0.2);
       }
       
       .tx-toggle-label {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
         color: #ffffff;
+        margin-bottom: 4px;
       }
       
       .tx-toggle-sub {
-        font-size: 12px;
-        color: #cbf3f0;
-        margin-top: 4px;
-        opacity: 0.8;
+        font-size: 13px;
+        color: #979dac;
       }
       
-      /* Modern Toggle Switch */
+      /* Switch */
       .tx-switch {
         position: relative;
-        width: 52px;
-        height: 28px;
+        width: 56px;
+        height: 30px;
       }
       
       .tx-switch input {
@@ -209,225 +196,188 @@ class TraderXSidebar {
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 28px;
-        border: 2px solid #475569;
+        background-color: #002855;
+        transition: .4s;
+        border-radius: 30px;
+        border: 1px solid #023e7d;
       }
       
       .tx-slider:before {
         position: absolute;
         content: "";
-        height: 20px;
-        width: 20px;
-        left: 2px;
-        bottom: 2px;
-        background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #7d8597;
+        transition: .4s;
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       }
       
       input:checked + .tx-slider {
-        background: linear-gradient(135deg, #2ec4b6 0%, #1aa198 100%);
-        border-color: #2ec4b6;
+        background-color: #0466c8;
+        border-color: #0353a4;
       }
       
       input:checked + .tx-slider:before {
-        transform: translateX(24px);
-        background: linear-gradient(135deg, #ffffff 0%, #cbf3f0 100%);
+        transform: translateX(26px);
+        background-color: #ffffff;
       }
       
-      /* Button Styles */
-      .tx-controls {
-        padding: 20px 24px;
+      /* Buttons Grid */
+      .tx-grid {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
       
       .tx-btn {
         width: 100%;
-        padding: 16px 20px;
+        padding: 18px 24px;
         border-radius: 14px;
-        border: none;
+        border: 1px solid transparent;
         font-weight: 600;
         font-size: 14px;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        position: relative;
-        overflow: hidden;
+        gap: 12px;
+        letter-spacing: 0.01em;
       }
       
-      .tx-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
-      }
-      
-      .tx-btn:hover::before {
-        left: 100%;
-      }
-      
+      /* Primary Button - Mid Blue Gradient */
       .tx-btn-primary {
-        background: linear-gradient(135deg, #ff9f1c 0%, #ffbf69 100%);
-        color: #0d1b2a;
-        box-shadow: 0 4px 20px rgba(255, 159, 28, 0.4);
+        background: linear-gradient(135deg, #0466c8 0%, #0353a4 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 15px rgba(4, 102, 200, 0.3);
+        border: 1px solid #0466c8;
       }
       
       .tx-btn-primary:hover {
+        background: linear-gradient(135deg, #023e7d 0%, #002855 100%);
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(255, 159, 28, 0.5);
+        box-shadow: 0 6px 20px rgba(4, 102, 200, 0.4);
       }
       
+      /* Secondary Button - Darker Navy */
       .tx-btn-secondary {
-        background: linear-gradient(135deg, #2ec4b6 0%, #1aa198 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 20px rgba(46, 196, 182, 0.3);
+        background: rgba(4, 102, 200, 0.1);
+        color: #4cc9f0; /* Keeping a slight bright accent for text readability */
+        border: 1px solid rgba(4, 102, 200, 0.3);
       }
       
       .tx-btn-secondary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(46, 196, 182, 0.4);
+        background: rgba(4, 102, 200, 0.2);
+        color: #ffffff;
+        border-color: #0466c8;
       }
       
+      /* Outline Button */
       .tx-btn-outline {
         background: transparent;
-        border: 2px solid rgba(46, 196, 182, 0.5);
-        color: #cbf3f0;
+        border: 1px solid #33415c;
+        color: #979dac;
       }
       
       .tx-btn-outline:hover {
-        background: rgba(46, 196, 182, 0.15);
-        border-color: #2ec4b6;
+        border-color: #7d8597;
         color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
       }
       
-      /* Export Buttons - Color coded */
-      .tx-btn-json {
-        background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-      }
-      
-      .tx-btn-json:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
-      }
-      
-      .tx-btn-csv {
-        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-      }
-      
-      .tx-btn-csv:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+      /* Export Actions Section */
+      .tx-export-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
       
       .tx-btn-ai {
-        background: linear-gradient(135deg, #ff9f1c 0%, #f59e0b 100%);
-        color: #0d1b2a;
-        box-shadow: 0 4px 20px rgba(255, 159, 28, 0.4);
-        font-weight: 700;
+        background: linear-gradient(135deg, #0353a4 0%, #023e7d 100%);
+        color: white;
+        border: 1px solid #0466c8;
       }
       
       .tx-btn-ai:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(255, 159, 28, 0.5);
+        box-shadow: 0 0 15px rgba(4, 102, 200, 0.5);
+      }
+
+      .tx-btn-plain {
+        background: #001845;
+        color: #7d8597;
+        border: 1px solid #023e7d;
       }
       
+      .tx-btn-plain:hover {
+        background: #002855;
+        color: white;
+      }
+
       /* Footer */
       .tx-footer {
-        padding: 20px 24px;
-        background: linear-gradient(180deg, transparent 0%, rgba(46, 196, 182, 0.1) 100%);
+        padding: 24px 32px;
+        border-top: 1px solid #023e7d;
+        background: #001233;
         text-align: center;
-        border-top: 1px solid rgba(46, 196, 182, 0.2);
       }
       
       .tx-credits {
-        font-size: 12px;
-        color: rgba(203, 243, 240, 0.7);
+        font-size: 11px;
+        color: #5c677d;
         font-weight: 500;
+        letter-spacing: 0.02em;
       }
       
       .tx-link {
-        color: #2ec4b6;
+        color: #0466c8;
         text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s;
+        transition: color 0.2s;
       }
       
       .tx-link:hover {
-        color: #ff9f1c;
-        text-shadow: 0 0 10px rgba(255, 159, 28, 0.5);
+        color: #4cc9f0;
+        text-decoration: underline;
       }
       
-      /* Floating Trigger Button */
+      /* Floating Trigger */
       #tx-trigger {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, #ff9f1c 0%, #ffbf69 100%);
-        color: #0d1b2a;
+        bottom: 30px;
+        right: 30px;
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #0466c8 0%, #023e7d 100%);
+        color: white;
         border: none;
-        box-shadow: 0 8px 30px rgba(255, 159, 28, 0.5);
+        box-shadow: 0 10px 30px rgba(2, 62, 125, 0.5);
         cursor: pointer;
         z-index: 9990;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
       
       #tx-trigger:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 12px 40px rgba(255, 159, 28, 0.6);
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 15px 40px rgba(2, 62, 125, 0.6);
       }
       
-      #tx-trigger::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border-radius: 18px;
-        background: inherit;
-        z-index: -1;
-        animation: pulse 2s infinite;
+      #tx-trigger svg {
+        width: 32px;
+        height: 32px;
+        stroke-width: 2;
       }
-      
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.2); opacity: 0; }
-        100% { transform: scale(1); opacity: 0; }
+
+      /* Icons */
+      .tx-icon {
+        width: 18px;
+        height: 18px;
       }
-      
-      /* Stats Pill */
-      .tx-stats-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(255, 159, 28, 0.2);
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        color: #ffbf69;
-        font-weight: 600;
-        border: 1px solid rgba(255, 159, 28, 0.3);
-      }
+
     `;
     document.head.appendChild(style);
   }
@@ -443,15 +393,15 @@ class TraderXSidebar {
       <div class="tx-header">
         <div class="tx-title">
           <div class="tx-title-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2ec4b6" stroke-width="2.5">
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-              <polyline points="16 7 22 7 22 13"></polyline>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
             </svg>
           </div>
           TraderX Pro
         </div>
-        <button class="tx-close" id="tx-close-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <button class="tx-close" id="tx-close-btn" title="Close Sidebar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -459,17 +409,18 @@ class TraderXSidebar {
       </div>
       
       <div class="tx-content">
+        <!-- TRUSTED MODE -->
         <div class="tx-section">
           <div class="tx-section-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
-            Core Filters
+            Global Filter
           </div>
-          <div class="tx-toggle-card">
+          <div class="tx-card tx-toggle-row">
             <div>
-              <div class="tx-toggle-label">Trusted View Only</div>
-              <div class="tx-toggle-sub">Show verified accounts only</div>
+              <div class="tx-toggle-label">Trusted Mode</div>
+              <div class="tx-toggle-sub">Verified accounts only</div>
             </div>
             <label class="tx-switch">
               <input type="checkbox" id="tx-trusted-toggle" ${this.trustedMode ? 'checked' : ''}>
@@ -478,94 +429,69 @@ class TraderXSidebar {
           </div>
         </div>
         
-        <div class="tx-controls">
+        <!-- RESEARCH TOOLS -->
+        <div class="tx-section">
           <div class="tx-section-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            Market Research
+            Market Tools
           </div>
           
-          <button class="tx-btn tx-btn-primary" id="tx-adv-search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            Advanced Search
-          </button>
-          
-          <button class="tx-btn tx-btn-secondary" id="tx-directory-open">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            Signal Directory
-          </button>
+          <div class="tx-grid">
+            <button class="tx-btn tx-btn-primary" id="tx-adv-search">
+              Advanced Search
+            </button>
+            
+            <button class="tx-btn tx-btn-secondary" id="tx-directory-open">
+              Signal Directory
+            </button>
 
-          <button class="tx-btn tx-btn-outline" id="tx-tracker-toggle">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="3" y1="9" x2="21" y2="9"></line>
-              <line x1="9" y1="21" x2="9" y2="9"></line>
-            </svg>
-            Toggle Market Pulse
-          </button>
+            <button class="tx-btn tx-btn-outline" id="tx-tracker-toggle">
+              Market Pulse
+            </button>
+          </div>
         </div>
         
-        <div class="tx-controls" style="padding-top: 0;">
+        <!-- EXPORTS -->
+        <div class="tx-section">
           <div class="tx-section-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-            Export Tweets
+            Analysis & Export
           </div>
           
-          <button class="tx-btn tx-btn-ai" id="tx-copy-ai">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
-              <circle cx="12" cy="12" r="4"></circle>
-            </svg>
-            🧠 AI Analysis Prompt
-          </button>
-          
-          <button class="tx-btn tx-btn-json" id="tx-copy-json">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
-            Copy as JSON
-          </button>
-          
-          <button class="tx-btn tx-btn-csv" id="tx-copy-csv">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-            Export to CSV
-          </button>
+          <div class="tx-export-grid">
+            <button class="tx-btn tx-btn-ai" id="tx-copy-ai">
+              ✨ Copy for AI Analysis
+            </button>
+            <button class="tx-btn tx-btn-plain" id="tx-copy-json">
+              { } Copy JSON
+            </button>
+            <button class="tx-btn tx-btn-plain" id="tx-copy-csv">
+               📊 Download CSV
+            </button>
+          </div>
         </div>
       </div>
       
       <div class="tx-footer">
         <div class="tx-credits">
-          Crafted with 💛 by <a href="https://github.com/bhrigu-verma" target="_blank" class="tx-link">Bhrigu Verma</a>
+          Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="tx-link">Bhrigu Verma</a>
         </div>
       </div>
     `;
 
     document.body.appendChild(sidebar);
 
-    // Add floating trigger button
+    // Floating trigger button
     const trigger = document.createElement('button');
     trigger.id = 'tx-trigger';
     trigger.innerHTML = `
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
         <polyline points="16 7 22 7 22 13"></polyline>
       </svg>
@@ -612,53 +538,85 @@ class TraderXSidebar {
       }
     });
 
-    // Export buttons
+    // Exports
     document.getElementById('tx-copy-json').addEventListener('click', () => this.copyTweetsAsJSON());
     document.getElementById('tx-copy-csv').addEventListener('click', () => this.exportTweetsAsCSV());
     document.getElementById('tx-copy-ai').addEventListener('click', () => this.copyTweetsForAI());
   }
 
   // ========================================================================
-  // EXPORT FUNCTIONS
+  // EXPORT LOGIC (UNCHANGED)
   // ========================================================================
 
   extractTweetsFromPage() {
-    const tweets = document.querySelectorAll('article[data-testid="tweet"]');
+    // Try multiple selectors for tweets (X.com DOM can vary)
+    const selectors = [
+      'article[data-testid="tweet"]',
+      'article[role="article"]',
+      '[data-testid="cellInnerDiv"] article',
+      'div[data-testid="primaryColumn"] article'
+    ];
+
+    let tweets = [];
+    for (const selector of selectors) {
+      tweets = document.querySelectorAll(selector);
+      if (tweets.length > 0) {
+        console.log(`[TraderX] Found ${tweets.length} tweets using selector: ${selector}`);
+        break;
+      }
+    }
+
+    if (tweets.length === 0) {
+      console.warn('[TraderX] No tweets found on page. Available articles:', document.querySelectorAll('article').length);
+      return [];
+    }
+
     const tweetData = [];
 
     tweets.forEach((tweet, index) => {
-      const authorEl = tweet.querySelector('[data-testid="User-Name"]');
-      const authorText = authorEl ? authorEl.textContent : '';
-      const author = authorText.split('@')[1]?.split('·')[0]?.trim() || 'Unknown';
-      const displayName = authorText.split('@')[0]?.trim() || 'Unknown';
+      try {
+        // Try multiple selectors for author info
+        let authorEl = tweet.querySelector('[data-testid="User-Name"]');
+        if (!authorEl) authorEl = tweet.querySelector('a[role="link"][href*="/"]');
 
-      const tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
-      const text = tweetTextEl ? tweetTextEl.textContent : '';
+        const authorText = authorEl ? authorEl.textContent : '';
+        const author = authorText.split('@')[1]?.split('·')[0]?.trim() || 'Unknown';
+        const displayName = authorText.split('@')[0]?.trim() || 'Unknown';
 
-      const timeEl = tweet.querySelector('time');
-      const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
+        // Try multiple selectors for tweet text
+        let tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
+        if (!tweetTextEl) tweetTextEl = tweet.querySelector('div[lang]');
+        const text = tweetTextEl ? tweetTextEl.textContent : '';
 
-      const replyEl = tweet.querySelector('[data-testid="reply"]');
-      const retweetEl = tweet.querySelector('[data-testid="retweet"]');
-      const likeEl = tweet.querySelector('[data-testid="like"]');
+        const timeEl = tweet.querySelector('time');
+        const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
 
-      const replies = this.parseNumber(replyEl?.textContent?.trim() || '0');
-      const retweets = this.parseNumber(retweetEl?.textContent?.trim() || '0');
-      const likes = this.parseNumber(likeEl?.textContent?.trim() || '0');
+        // Engagement metrics with fallbacks
+        const replyEl = tweet.querySelector('[data-testid="reply"]');
+        const retweetEl = tweet.querySelector('[data-testid="retweet"]');
+        const likeEl = tweet.querySelector('[data-testid="like"]');
 
-      if (text) {
-        tweetData.push({
-          id: index + 1,
-          author: `@${author}`,
-          displayName,
-          timestamp,
-          text,
-          engagement: { replies, retweets, likes },
-          engagementScore: replies + retweets + likes
-        });
+        const replies = this.parseNumber(replyEl?.textContent?.trim() || '0');
+        const retweets = this.parseNumber(retweetEl?.textContent?.trim() || '0');
+        const likes = this.parseNumber(likeEl?.textContent?.trim() || '0');
+
+        if (text && text.length > 0) {
+          tweetData.push({
+            id: index + 1,
+            author: `@${author}`,
+            displayName,
+            timestamp,
+            text,
+            engagement: { replies, retweets, likes },
+            engagementScore: replies + retweets + likes
+          });
+        }
+      } catch (err) {
+        console.warn(`[TraderX] Error parsing tweet ${index}:`, err);
       }
     });
 
+    console.log(`[TraderX] Successfully extracted ${tweetData.length} tweets`);
     return tweetData;
   }
 
@@ -672,7 +630,6 @@ class TraderXSidebar {
 
   async copyTweetsAsJSON() {
     const tweets = this.extractTweetsFromPage();
-
     if (tweets.length === 0) {
       this.showToast('No tweets found on this page!', 'error');
       return;
@@ -695,21 +652,20 @@ class TraderXSidebar {
 
   async exportTweetsAsCSV() {
     const tweets = this.extractTweetsFromPage();
-
     if (tweets.length === 0) {
       this.showToast('No tweets found on this page!', 'error');
       return;
     }
 
-    let csv = '# Tweet Export\n';
-    csv += `# Date: ${new Date().toLocaleDateString()}\n`;
-    csv += `# Source: ${window.location.href}\n`;
-    csv += `# Total: ${tweets.length} tweets\n\n`;
-    csv += 'Index,Author,DisplayName,Timestamp,Text,Replies,Retweets,Likes,Engagement\n';
+    let csv = '# Tweet Export\\n';
+    csv += `# Date: ${new Date().toLocaleDateString()}\\n`;
+    csv += `# Source: ${window.location.href}\\n`;
+    csv += `# Total: ${tweets.length} tweets\\n\\n`;
+    csv += 'Index,Author,DisplayName,Timestamp,Text,Replies,Retweets,Likes,Engagement\\n';
 
     tweets.forEach(t => {
-      const text = t.text.replace(/"/g, '""').replace(/\n/g, ' ');
-      csv += `${t.id},"${t.author}","${t.displayName}","${t.timestamp}","${text}",${t.engagement.replies},${t.engagement.retweets},${t.engagement.likes},${t.engagementScore}\n`;
+      const text = t.text.replace(/"/g, '""').replace(/\\n/g, ' ');
+      csv += `${t.id},"${t.author}","${t.displayName}","${t.timestamp}","${text}",${t.engagement.replies},${t.engagement.retweets},${t.engagement.likes},${t.engagementScore}\\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -724,149 +680,42 @@ class TraderXSidebar {
 
   async copyTweetsForAI() {
     const tweets = this.extractTweetsFromPage();
-
     if (tweets.length === 0) {
       this.showToast('No tweets found on this page!', 'error');
       return;
     }
 
-    // Sort by engagement to identify important voices
     const sortedTweets = [...tweets].sort((a, b) => b.engagementScore - a.engagementScore);
     const topTweets = sortedTweets.slice(0, 10);
 
     const date = new Date().toLocaleDateString();
     const url = window.location.href;
-
-    // Extract ticker from URL or page
-    const tickerMatch = url.match(/\$([A-Za-z]+)/) || url.match(/q=.*?([A-Z]{1,5})/i);
+    const tickerMatch = url.match(/\\$([A-Za-z]+)/) || url.match(/q=.*?([A-Z]{1,5})/i);
     const ticker = tickerMatch ? tickerMatch[1].toUpperCase() : 'UNKNOWN';
 
-    let prompt = `# 🎯 COMPREHENSIVE TWITTER SENTIMENT ANALYSIS REQUEST
-
-## Asset Information
-- **Ticker/Asset**: $${ticker}
-- **Analysis Date**: ${date}
-- **Data Source**: ${url}
-- **Total Tweets Analyzed**: ${tweets.length}
-
----
-
-## 🧠 ANALYSIS INSTRUCTIONS
-
-Please provide a COMPREHENSIVE analysis with the following sections:
-
-### 1️⃣ EXECUTIVE SUMMARY
-- One-paragraph overview of the overall sentiment and key takeaways
-- Include a sentiment score from 1-100 (1 = extremely bearish, 100 = extremely bullish)
-
-### 2️⃣ SENTIMENT BREAKDOWN
-Provide percentages for:
-- 🟢 **Bullish**: X% (count: N tweets)
-- 🔴 **Bearish**: X% (count: N tweets)  
-- ⚪ **Neutral**: X% (count: N tweets)
-
-### 3️⃣ LIVE PRICE CHECK
-**IMPORTANT**: Please fetch the current live price of $${ticker} and include:
-- Current price
-- 24-hour change (%)
-- Market cap (if applicable)
-- Volume trend
-
-### 4️⃣ KEY THEMES & NARRATIVES
-Identify the top 5 discussion themes with supporting tweet examples
-
-### 5️⃣ INFLUENTIAL VOICES SUMMARY
-The top 10 most engaged tweets are highlighted below. Summarize what key influencers are saying.
-
-### 6️⃣ CATALYSTS & EVENTS
-List any mentioned:
-- Upcoming events (earnings, announcements, releases)
-- Recent news affecting price
-- Regulatory developments
-- Partnership/acquisition rumors
-
-### 7️⃣ RISK FACTORS
-Identify concerns mentioned by the community:
-- Technical concerns
-- Fundamental concerns
-- Market-wide risks
-- Specific threats
-
-### 8️⃣ TECHNICAL ANALYSIS MENTIONS
-If any tweets mention technical analysis, summarize:
-- Support/resistance levels
-- Chart patterns
-- Key price targets
-
-### 9️⃣ PRICE PREDICTIONS
-Compile any price predictions from tweets:
-- Short-term (1-7 days)
-- Medium-term (1-4 weeks)
-- Long-term (1-3 months)
-
-### 🔟 FINAL RECOMMENDATION
-Based on all the above analysis, provide:
-- **Outlook**: Bullish / Bearish / Neutral
-- **Confidence Level**: Low / Medium / High
-- **Time Horizon**: Short / Medium / Long term
-- **Key Action Items**: What should traders watch for?
-
----
-
-## 🌟 TOP 10 INFLUENTIAL TWEETS (by engagement)
-
-`;
+    let prompt = `# 🎯 COMPREHENSIVE TWITTER SENTIMENT ANALYSIS REQUEST\\n\\n## Asset Information\\n- **Ticker/Asset**: $${ticker}\\n- **Analysis Date**: ${date}\\n- **Data Source**: ${url}\\n- **Total Tweets Analyzed**: ${tweets.length}\\n\\n---\\n\\n## 🧠 ANALYSIS INSTRUCTIONS\\n\\nPlease provide a COMPREHENSIVE analysis with the following sections:\\n\\n### 1️⃣ EXECUTIVE SUMMARY\\n- One-paragraph overview of the overall sentiment and key takeaways\\n- Include a sentiment score from 1-100 (1 = extremely bearish, 100 = extremely bullish)\\n\\n### 2️⃣ SENTIMENT BREAKDOWN\\nProvide percentages for:\\n- 🟢 **Bullish**: X% (count: N tweets)\\n- 🔴 **Bearish**: X% (count: N tweets)  \\n- ⚪ **Neutral**: X% (count: N tweets)\\n\\n### 3️⃣ LIVE PRICE CHECK\\n**IMPORTANT**: Please fetch the current live price of $${ticker} and include:\\n- Current price\\n- 24-hour change (%)\\n- Market cap (if applicable)\\n- Volume trend\\n\\n### 4️⃣ KEY THEMES & NARRATIVES\\nIdentify the top 5 discussion themes with supporting tweet examples\\n\\n### 5️⃣ INFLUENTIAL VOICES SUMMARY\\nThe top 10 most engaged tweets are highlighted below. Summarize what key influencers are saying.\\n\\n### 6️⃣ CATALYSTS & EVENTS\\nList any mentioned:\\n- Upcoming events (earnings, announcements, releases)\\n- Recent news affecting price\\n- Regulatory developments\\n- Partnership/acquisition rumors\\n\\n### 7️⃣ RISK FACTORS\\nIdentify concerns mentioned by the community:\\n- Technical concerns\\n- Fundamental concerns\\n- Market-wide risks\\n- Specific threats\\n\\n### 8️⃣ TECHNICAL ANALYSIS MENTIONS\\nIf any tweets mention technical analysis, summarize:\\n- Support/resistance levels\\n- Chart patterns\\n- Key price targets\\n\\n### 9️⃣ PRICE PREDICTIONS\\nCompile any price predictions from tweets:\\n- Short-term (1-7 days)\\n- Medium-term (1-4 weeks)\\n- Long-term (1-3 months)\\n\\n### 🔟 FINAL RECOMMENDATION\\nBased on all the above analysis, provide:\\n- **Outlook**: Bullish / Bearish / Neutral\\n- **Confidence Level**: Low / Medium / High\\n- **Time Horizon**: Short / Medium / Long term\\n- **Key Action Items**: What should traders watch for?\\n\\n---\\n\\n## 🌟 TOP 10 INFLUENTIAL TWEETS (by engagement)\\n\\n`;
 
     topTweets.forEach((t, i) => {
-      prompt += `### ${i + 1}. ${t.displayName} (${t.author})
-**Engagement**: 💬 ${t.engagement.replies} | 🔁 ${t.engagement.retweets} | ❤️ ${t.engagement.likes} | Score: ${t.engagementScore}
-**Time**: ${t.timestamp}
-
-> ${t.text}
-
----
-
-`;
+      prompt += `### ${i + 1}. ${t.displayName} (${t.author})\\n**Engagement**: 💬 ${t.engagement.replies} | 🔁 ${t.engagement.retweets} | ❤️ ${t.engagement.likes} | Score: ${t.engagementScore}\\n**Time**: ${t.timestamp}\\n\\n> ${t.text}\\n\\n---\\n\\n`;
     });
 
-    prompt += `
-## 📊 ALL TWEETS DATA (${tweets.length} total)
-
-`;
+    prompt += `\\n## 📊 ALL TWEETS DATA (${tweets.length} total)\\n\\n`;
 
     tweets.forEach((t, i) => {
-      prompt += `**[${i + 1}]** ${t.author} (${t.displayName}) • 💬${t.engagement.replies} 🔁${t.engagement.retweets} ❤️${t.engagement.likes}
-${t.text}
----
-`;
+      prompt += `**[${i + 1}]** ${t.author} (${t.displayName}) • 💬${t.engagement.replies} 🔁${t.engagement.retweets} ❤️${t.engagement.likes}\\n${t.text}\\n---\\n`;
     });
 
-    prompt += `
-
-## 📌 FINAL NOTES
-
-1. Please generate a visual ASCII chart showing sentiment distribution
-2. Create a watchlist of key price levels mentioned
-3. Highlight any unusual activity or sentiment divergence
-4. Compare current sentiment to typical market conditions
-5. Provide 3 actionable trade ideas based on this analysis
-
----
-
-*Data exported by TraderX Pro • ${tweets.length} tweets analyzed*
-*Please proceed with the comprehensive analysis now.*
-`;
+    prompt += `\\n\\n## 📌 FINAL NOTES\\n\\n1. Please generate a visual ASCII chart showing sentiment distribution\\n2. Create a watchlist of key price levels mentioned\\n3. Highlight any unusual activity or sentiment divergence\\n4. Compare current sentiment to typical market conditions\\n5. Provide 3 actionable trade ideas based on this analysis\\n\\n---\\n\\n*Data exported by TraderX Pro • ${tweets.length} tweets analyzed*\\n*Please proceed with the comprehensive analysis now.*\\n`;
 
     try {
       await navigator.clipboard.writeText(prompt);
-      this.showToast(`✓ AI Analysis Prompt copied! Paste into ChatGPT/Claude`, 'success');
+      this.showToast(`✓ AI Analysis Prompt copied!`, 'success');
     } catch (error) {
       this.showToast('Failed to copy. Please try again.', 'error');
     }
   }
 
   showToast(message, type = 'success') {
-    // Remove existing toast
     const existing = document.getElementById('tx-toast');
     if (existing) existing.remove();
 
@@ -874,35 +723,39 @@ ${t.text}
     toast.id = 'tx-toast';
     toast.style.cssText = `
       position: fixed;
-      bottom: 100px;
-      right: 24px;
+      bottom: 110px;
+      right: 30px;
       padding: 16px 24px;
       border-radius: 12px;
       font-family: 'Inter', sans-serif;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       z-index: 99999;
-      animation: slideIn 0.3s ease;
-      ${type === 'success'
-        ? 'background: linear-gradient(135deg, #2ec4b6 0%, #1aa198 100%); color: white;'
-        : 'background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;'}
-      box-shadow: 0 8px 30px ${type === 'success' ? 'rgba(46, 196, 182, 0.4)' : 'rgba(239, 68, 68, 0.4)'};
+      background: #001233;
+      color: white;
+      border: 1px solid #0466c8;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
     `;
     toast.innerHTML = message;
 
     const style = document.createElement('style');
     style.textContent = `
       @keyframes slideIn {
-        from { transform: translateX(100px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
       }
     `;
     document.head.appendChild(style);
-
     document.body.appendChild(toast);
 
     setTimeout(() => {
-      toast.style.animation = 'slideOut 0.3s ease forwards';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s';
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }

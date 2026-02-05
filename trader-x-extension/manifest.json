@@ -1,0 +1,75 @@
+{
+  "manifest_version": 3,
+  "name": "TraderX Pro",
+  "version": "2.0.0",
+  "description": "Professional trading assistant: ML sentiment analysis, real-time prices, influencer weighting, and noise filtering",
+  "permissions": [
+    "storage",
+    "notifications",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://api.coingecko.com/*",
+    "https://query1.finance.yahoo.com/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "settings/settings.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "suggested.js",
+        "utils.js",
+        "content/priceFetcher.js",
+        "content/analysisEngine.js",
+        "content/twitterFetcher.js",
+        "content/trackerDashboard.js",
+        "content/tweetProcessor.js",
+        "content/accountDirectory.js",
+        "content/advancedsearch.js",
+        "content/sidebar.js",
+        "content/content.js"
+      ],
+      "css": [
+        "content/content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "accounts.json"
+      ],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

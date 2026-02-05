@@ -1,0 +1,582 @@
+/* === TRADERX CONTENT STYLES v1.2 === */
+
+/* ============================================
+   BASE TWEET STYLING
+   ============================================ */
+
+article[data-testid="tweet"] {
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.traderx-hidden {
+  display: none !important;
+}
+
+.traderx-search-hidden {
+  display: none !important;
+}
+
+/* Suggested handle indicator */
+article[data-traderx-suggested="true"] {
+  background: rgba(139, 92, 246, 0.05);
+}
+
+/* ============================================
+   TICKER TAGS
+   ============================================ */
+
+.traderx-ticker-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 6px 0;
+}
+
+.traderx-ticker-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.traderx-ticker-tag:hover {
+  transform: scale(1.05);
+  border-color: #3B82F6;
+}
+
+.traderx-ticker-tag-symbol {
+  font-family: -apple-system, BlinkMacSystemFont, monospace;
+}
+
+.traderx-ticker-tag-symbol.bullish {
+  color: #10B981;
+}
+
+.traderx-ticker-tag-symbol.bearish {
+  color: #EF4444;
+}
+
+.traderx-ticker-tag-symbol.neutral {
+  color: #60A5FA;
+}
+
+.traderx-ticker-tag-arrow {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.traderx-ticker-tag-arrow.bullish {
+  color: #10B981;
+}
+
+.traderx-ticker-tag-arrow.bearish {
+  color: #EF4444;
+}
+
+.traderx-ticker-tag-arrow.neutral {
+  display: none;
+}
+
+.traderx-ticker-more {
+  color: #6B7280;
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+/* ============================================
+   TIER BADGES
+   ============================================ */
+
+article[data-traderx-tier="1"]::before {
+  content: "🔴 CRITICAL";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+article[data-traderx-tier="2"]::before {
+  content: "🟠 TRUSTED";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 100;
+}
+
+article[data-traderx-tier="3"]::before {
+  content: "🟡 SIGNALS";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%);
+  color: #1F2937;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 100;
+}
+
+article[data-traderx-highlight="watchlist"]::after {
+  content: "🎯 WATCHLIST";
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%);
+  color: #1F2937;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 100;
+}
+
+/* ============================================
+   SIDEBAR STYLES
+   ============================================ */
+
+#traderx-sidebar {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  width: 280px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, #111827 0%, #0F172A 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  color: #F9FAFB;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#traderx-sidebar.traderx-sidebar-hidden {
+  display: none !important;
+}
+
+.traderx-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.traderx-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.traderx-logo {
+  font-size: 18px;
+}
+
+.traderx-logo-text {
+  font-weight: 700;
+  font-size: 15px;
+  color: #60A5FA;
+}
+
+.traderx-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.traderx-market-status {
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+.traderx-minimize {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #9CA3AF;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.traderx-minimize:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.traderx-sidebar-content {
+  padding: 0;
+}
+
+/* Search Box */
+.traderx-search-box {
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.traderx-search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1F2937;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: all 0.2s;
+}
+
+.traderx-search-input-wrapper:focus-within {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.traderx-search-icon {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.traderx-search-input-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #F9FAFB;
+  font-size: 14px;
+  outline: none;
+}
+
+.traderx-search-input-wrapper input::placeholder {
+  color: #6B7280;
+}
+
+.traderx-search-clear {
+  background: transparent;
+  border: none;
+  color: #EF4444;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px;
+}
+
+.traderx-search-clear.hidden {
+  display: none;
+}
+
+.traderx-search-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.traderx-search-status.active {
+  color: #10B981;
+}
+
+.traderx-search-status.warning {
+  color: #F59E0B;
+}
+
+.traderx-search-status.error {
+  color: #EF4444;
+}
+
+/* Quick Filters */
+.traderx-quick-filters {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.traderx-quick-filter-row {
+  display: flex;
+  gap: 6px;
+}
+
+.traderx-quick-btn {
+  flex: 1;
+  padding: 8px;
+  background: #1F2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.traderx-quick-btn:hover {
+  background: #374151;
+  color: white;
+}
+
+.traderx-quick-btn.active {
+  background: #3B82F6;
+  border-color: #3B82F6;
+  color: white;
+}
+
+/* Advanced Search Button */
+.traderx-advanced-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.traderx-advanced-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* Sections */
+.traderx-section {
+  padding: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.traderx-section:last-child {
+  border-bottom: none;
+}
+
+.traderx-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.traderx-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.traderx-section-count {
+  background: #374151;
+  color: #9CA3AF;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Price Items */
+.traderx-price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.traderx-price-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateX(-2px);
+}
+
+.traderx-ticker {
+  font-weight: 600;
+  color: #60A5FA;
+  font-size: 13px;
+}
+
+.traderx-price-data {
+  text-align: right;
+}
+
+.traderx-price-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #F9FAFB;
+  display: block;
+}
+
+.traderx-price-change {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.traderx-price-change.positive {
+  color: #10B981;
+}
+
+.traderx-price-change.negative {
+  color: #EF4444;
+}
+
+.traderx-price-error {
+  color: #6B7280;
+}
+
+.traderx-no-tickers {
+  text-align: center;
+  color: #6B7280;
+  font-size: 12px;
+  padding: 16px;
+}
+
+.traderx-loading {
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 12px;
+  padding: 16px;
+}
+
+.traderx-refresh-note {
+  font-size: 10px;
+  color: #6B7280;
+  text-align: center;
+  padding-top: 8px;
+}
+
+.traderx-error {
+  color: #EF4444;
+}
+
+/* Add Section */
+.traderx-add-section {
+  padding: 12px 14px;
+}
+
+.traderx-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.traderx-add-row input {
+  flex: 1;
+  padding: 10px 14px;
+  background: #1F2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: #F9FAFB;
+  font-size: 13px;
+}
+
+.traderx-add-row input:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.traderx-add-row button {
+  padding: 10px 16px;
+  background: #10B981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.traderx-add-row button:hover {
+  background: #059669;
+}
+
+/* Stats */
+.traderx-stats-section {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.traderx-stat-item {
+  text-align: center;
+}
+
+.traderx-stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #60A5FA;
+}
+
+.traderx-stat-label {
+  display: block;
+  font-size: 10px;
+  color: #6B7280;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Footer */
+.traderx-sidebar-footer {
+  padding: 12px 14px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.traderx-sidebar-footer a {
+  color: #9CA3AF;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.traderx-sidebar-footer a:hover {
+  color: #F9FAFB;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1400px) {
+  #traderx-sidebar {
+    width: 260px;
+  }
+}
+
+@media (max-width: 1200px) {
+  #traderx-sidebar {
+    top: auto;
+    bottom: 16px;
+    right: 16px;
+    max-height: 50vh;
+  }
+}

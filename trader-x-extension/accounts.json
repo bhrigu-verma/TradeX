@@ -1,0 +1,110 @@
+{
+    "metadata": {
+        "version": "1.0",
+        "last_updated": "2026-02-04",
+        "total_count": 0,
+        "description": "Curated list of verified trading and finance accounts organized by category"
+    },
+    "accounts": {
+        "Macro_CentralBanks": [
+            "@federalreserve",
+            "@ecb",
+            "@bankofengland",
+            "@boj_en",
+            "@rba_gov_au",
+            "@bankofcanada",
+            "@snb_bns",
+            "@riksbanken"
+        ],
+        "Institutional_AssetMgmt": [
+            "@blackrock",
+            "@vanguard_group",
+            "@statestreet",
+            "@fidelity",
+            "@jpmorgan",
+            "@goldmansachs",
+            "@morganstanley",
+            "@citadel"
+        ],
+        "Media_News": [
+            "@DeItaone",
+            "@unusual_whales",
+            "@FirstSquawk",
+            "@financialjuice",
+            "@Newsquawk",
+            "@zerohedge",
+            "@Fxhedgers",
+            "@SquawkCNBC",
+            "@Bloomberg",
+            "@Reuters",
+            "@WSJ",
+            "@FT",
+            "@MarketWatch",
+            "@CNBC",
+            "@business",
+            "@Barrons"
+        ],
+        "Wealth_ValueInvesting": [
+            "@charliebilello",
+            "@sentimentrader",
+            "@WallStJesus",
+            "@traderstewie",
+            "@jimcramer",
+            "@howardlindzon",
+            "@ReformedTrader",
+            "@TradingView"
+        ],
+        "Trading_TechnicalAnalysis": [
+            "@Tradytics",
+            "@spotgamma",
+            "@TrendSpider",
+            "@OptionsPlay",
+            "@wallstreetbets",
+            "@stocktwits",
+            "@OptionsHawk",
+            "@FlowAlgo"
+        ],
+        "Crypto_DeFi": [
+            "@woonomic",
+            "@100trillionUSD",
+            "@cryptoquant_com",
+            "@WhaleAlert",
+            "@lookonchain",
+            "@santimentfeed",
+            "@glassnode",
+            "@coinmetrics"
+        ],
+        "Forex": [
+            "@ForexLive",
+            "@Schuldensuehner",
+            "@RaoulGMI",
+            "@MacroAlf",
+            "@LizAnnSonders"
+        ],
+        "Commodities": [
+            "@GoldTelegraph_",
+            "@Ole_S_Hansen",
+            "@Convertbond",
+            "@JavierBlas",
+            "@tracyalloway"
+        ],
+        "Corporate_IR": [
+            "@Tesla",
+            "@Apple",
+            "@Microsoft",
+            "@nvidia",
+            "@Meta",
+            "@Google",
+            "@amazon"
+        ],
+        "VentureCapital": [
+            "@sequoia",
+            "@a16z",
+            "@ycombinator",
+            "@BVP",
+            "@accel",
+            "@lightspeedvp",
+            "@greylock"
+        ]
+    }
+}

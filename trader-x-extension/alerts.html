@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>TraderX Alert History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #60A5FA;
+        }
+
+        .subtitle {
+            color: #94A3B8;
+            margin-bottom: 24px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #1E293B;
+            color: #F1F5F9;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+
+        select {
+            padding: 12px 16px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #1E293B;
+            color: #F1F5F9;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+
+        .alert-list {
+            background: #1E293B;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .alert-item {
+            display: flex;
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-type {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .alert-type.fda {
+            background: #10B981;
+        }
+
+        .alert-type.earnings {
+            background: #3B82F6;
+        }
+
+        .alert-type.halts {
+            background: #EF4444;
+        }
+
+        .alert-type.mergers {
+            background: #8B5CF6;
+        }
+
+        .alert-type.short {
+            background: #F59E0B;
+        }
+
+        .alert-type.default {
+            background: #6B7280;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .alert-meta {
+            font-size: 12px;
+            color: #94A3B8;
+        }
+
+        .alert-meta a {
+            color: #60A5FA;
+            text-decoration: none;
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: #64748B;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748B;
+        }
+
+        .empty-state h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #94A3B8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔔 Alert History</h1>
+        <p class="subtitle">View all triggered keyword alerts</p>
+
+        <div class="toolbar">
+            <input type="text" id="search" placeholder="Search alerts...">
+            <select id="filter-type">
+                <option value="">All Types</option>
+                <option value="FDA">FDA</option>
+                <option value="Earnings">Earnings</option>
+                <option value="Halts">Halts</option>
+                <option value="Mergers">Mergers</option>
+                <option value="Short Report">Short Report</option>
+            </select>
+            <button class="btn btn-primary" id="export-btn">📤 Export CSV</button>
+            <button class="btn btn-danger" id="clear-btn">🗑️ Clear All</button>
+        </div>
+
+        <div class="alert-list" id="alert-list">
+            <div class="empty-state">
+                <h2>No alerts yet</h2>
+                <p>Alerts will appear here when keyword rules are triggered.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let alerts = [];
+
+        // Load alerts
+        async function loadAlerts() {
+            const response = await chrome.runtime.sendMessage({ action: 'getAlertHistory' });
+            alerts = response.history || [];
+            renderAlerts();
+        }
+
+        // Render alerts
+        function renderAlerts() {
+            const container = document.getElementById('alert-list');
+            const search = document.getElementById('search').value.toLowerCase();
+            const typeFilter = document.getElementById('filter-type').value;
+
+            const filtered = alerts.filter(a => {
+                if (search && !a.text.toLowerCase().includes(search) && !a.author.toLowerCase().includes(search)) {
+                    return false;
+                }
+                if (typeFilter && a.name !== typeFilter) {
+                    return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+          <div class="empty-state">
+            <h2>No alerts found</h2>
+            <p>${alerts.length > 0 ? 'Try adjusting your filters.' : 'Alerts will appear here when keyword rules are triggered.'}</p>
+          </div>
+        `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(alert => {
+                const typeClass = alert.name.toLowerCase().replace(/\s+/g, '');
+                const time = new Date(alert.timestamp).toLocaleString();
+
+                return `
+          <div class="alert-item">
+            <span class="alert-type ${typeClass}">${alert.name}</span>
+            <div class="alert-content">
+              <div class="alert-text">${alert.text}</div>
+              <div class="alert-meta">
+                <a href="https://x.com/${alert.author}" target="_blank">@${alert.author}</a>
+                ${alert.tickers?.length ? ' · ' + alert.tickers.map(t => '$' + t).join(', ') : ''}
+              </div>
+            </div>
+            <span class="alert-time">${time}</span>
+          </div>
+        `;
+            }).join('');
+        }
+
+        // Export to CSV
+        function exportCSV() {
+            const csv = [
+                ['Time', 'Type', 'Author', 'Tickers', 'Text'].join(','),
+                ...alerts.map(a => [
+                    a.timestamp,
+                    a.name,
+                    a.author,
+                    (a.tickers || []).join(' '),
+                    '"' + a.text.replace(/"/g, '""') + '"'
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'traderx-alerts.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Clear alerts
+        async function clearAlerts() {
+            if (confirm('Clear all alert history? This cannot be undone.')) {
+                await chrome.runtime.sendMessage({ action: 'clearAlertHistory' });
+                alerts = [];
+                renderAlerts();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('search').addEventListener('input', renderAlerts);
+        document.getElementById('filter-type').addEventListener('change', renderAlerts);
+        document.getElementById('export-btn').addEventListener('click', exportCSV);
+        document.getElementById('clear-btn').addEventListener('click', clearAlerts);
+
+        // Initialize
+        loadAlerts();
+    </script>
+</body>
+
+</html>

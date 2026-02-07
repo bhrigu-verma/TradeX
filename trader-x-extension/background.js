@@ -34,6 +34,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 .catch(error => sendResponse({ error: error.message }));
             return true;
 
+        case 'FETCH_CRYPTO_PRICE':
+            fetchCryptoPrice(message.coinId)
+                .then(data => sendResponse({ data }))
+                .catch(error => sendResponse({ error: error.message }));
+            return true;
+
         case 'fetchQuotes':
             fetchQuotes(message.tickers)
                 .then(result => sendResponse(result))
@@ -84,6 +90,25 @@ async function fetchSingleStockPrice(ticker) {
         return data;
     } catch (error) {
         console.error(`[TraderX BG] Stock price fetch error for ${ticker}:`, error);
+        throw error;
+    }
+}
+
+// === SINGLE CRYPTO PRICE FETCH (for PriceFetcher - CORS bypass) ===
+async function fetchCryptoPrice(coinId) {
+    try {
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`;
+        const response = await fetch(url, { cache: 'no-store' });
+
+        if (!response.ok) {
+            throw new Error(`CoinGecko HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`[TraderX BG] Fetched crypto ${coinId}:`, data);
+        return data;
+    } catch (error) {
+        console.error(`[TraderX BG] Crypto price fetch error for ${coinId}:`, error);
         throw error;
     }
 }

@@ -124,19 +124,22 @@ class PriceFetcher {
         const coinId = this.cryptoIds[ticker] || ticker.toLowerCase();
 
         try {
-            const response = await fetch(
-                `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`,
-                { cache: 'no-store' }
-            );
+            // Use background script to bypass CORS
+            const response = await chrome.runtime.sendMessage({
+                type: 'FETCH_CRYPTO_PRICE',
+                coinId: coinId,
+                ticker: ticker
+            });
 
-            if (!response.ok) throw new Error('CoinGecko API error');
+            if (response.error) {
+                throw new Error(response.error);
+            }
 
-            const data = await response.json();
-            const coinData = data[coinId];
-
-            if (!coinData) {
+            if (!response.data || !response.data[coinId]) {
                 return { price: null, change24h: null, volume24h: null, type: 'crypto', error: 'Not found' };
             }
+
+            const coinData = response.data[coinId];
 
             return {
                 price: coinData.usd,

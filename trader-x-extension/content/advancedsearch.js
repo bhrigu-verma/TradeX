@@ -752,174 +752,284 @@ class TraderXAdvancedSearch {
 
     const ui = document.createElement('div');
     ui.id = 'traderx-search-ui';
+    ui.className = 'modal-overlay';
     ui.innerHTML = `
       <style>
-        #traderx-search-panel {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: #1F2937;
-          border-radius: 20px;
-          padding: 32px;
-          width: 480px;
-          max-width: 90vw;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-          z-index: 100000;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          color: #F9FAFB;
-        }
-        #traderx-search-overlay {
+        .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
+          background: rgba(20, 24, 32, 0.92);
+          backdrop-filter: blur(8px);
           z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.2s ease;
+          font-family: 'Inter', sans-serif;
         }
-        .traderx-input {
-          width: 100%;
-          padding: 14px 18px;
-          background: #374151;
-          border: 2px solid #4B5563;
-          border-radius: 12px;
+
+        .advanced-search-modal {
+          background: #141820;
+          border: 1px solid rgba(242, 246, 248, 0.12);
+          border-radius: 20px;
+          width: 90%;
+          max-width: 560px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+          position: relative;
+          color: #F2F6F8;
+          animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-header {
+          padding: 32px 32px 24px 32px;
+          border-bottom: 1px solid rgba(242, 246, 248, 0.08);
+        }
+
+        .modal-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #F2F6F8;
+          letter-spacing: -0.02em;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .modal-title-icon { font-size: 28px; color: #00A36C; }
+
+        .modal-subtitle {
+          font-size: 14px;
+          color: rgba(242, 246, 248, 0.6);
+          margin-top: 8px;
+          font-weight: 400;
+        }
+
+        .close-button {
+          position: absolute;
+          top: 24px;
+          right: 24px;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: #232830;
+          border: 1px solid rgba(242, 246, 248, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: rgba(242, 246, 248, 0.6);
+        }
+
+        .close-button:hover {
+          background: #EF4444;
+          border-color: #EF4444;
           color: white;
-          font-size: 16px;
-          margin-bottom: 16px;
+          transform: rotate(90deg);
+        }
+
+        .modal-body { padding: 32px; }
+
+        .search-input-container { margin-bottom: 24px; }
+
+        .search-input {
+          width: 100%;
+          height: 64px;
+          background: #232830;
+          border: 2px solid rgba(242, 246, 248, 0.08);
+          border-radius: 12px;
+          padding: 0 24px;
+          font-size: 18px;
+          color: #F2F6F8;
+          font-weight: 600;
+          transition: all 0.2s ease;
           box-sizing: border-box;
+          text-transform: uppercase;
         }
-        .traderx-input:focus {
-          outline: none;
-          border-color: #3B82F6;
+
+        .search-input::placeholder { color: rgba(242, 246, 248, 0.4); font-weight: 400; text-transform: none; }
+        .search-input:focus { outline: none; border-color: #00A36C; background: #1A1F2A; box-shadow: 0 0 0 4px rgba(0, 163, 108, 0.12); }
+
+        .quick-tickers { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+
+        .ticker-pill {
+          background: #232830;
+          border: 1px solid rgba(242, 246, 248, 0.08);
+          border-radius: 10px;
+          padding: 12px 20px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #F2F6F8;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .traderx-btn {
-          padding: 14px 28px;
+
+        .ticker-pill:hover {
+          background: #00A36C;
+          border-color: #00A36C;
+          color: #141820;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 163, 108, 0.3);
+        }
+
+        .filters-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; }
+
+        .filter-option {
+          background: #232830;
+          border: 2px solid rgba(242, 246, 248, 0.06);
+          border-radius: 12px;
+          padding: 16px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          user-select: none;
+        }
+
+        .filter-option:hover { border-color: #00A36C; background: rgba(0, 163, 108, 0.05); }
+        .filter-option.active { border-color: #00A36C; background: rgba(0, 163, 108, 0.12); }
+
+        .custom-checkbox {
+          width: 20px;
+          height: 20px;
+          border-radius: 6px;
+          border: 2px solid rgba(242, 246, 248, 0.3);
+          background: transparent;
+          position: relative;
+          flex-shrink: 0;
+          transition: all 0.2s ease;
+        }
+
+        .filter-option.active .custom-checkbox { background: #00A36C; border-color: #00A36C; }
+
+        .custom-checkbox::after {
+          content: "✓";
+          position: absolute;
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%) scale(0);
+          color: #141820; font-weight: 700; font-size: 14px;
+          transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .filter-option.active .custom-checkbox::after { transform: translate(-50%, -50%) scale(1); }
+
+        .filter-label { font-size: 14px; font-weight: 500; color: #F2F6F8; flex: 1; }
+
+        .search-button {
+          width: 100%;
+          height: 64px;
+          background: linear-gradient(135deg, #00A36C 0%, #00D68F 100%);
           border: none;
           border-radius: 12px;
-          font-weight: 600;
-          font-size: 15px;
+          font-size: 18px;
+          font-weight: 700;
+          color: #141820;
           cursor: pointer;
-          transition: all 0.2s;
-        }
-        .traderx-btn-primary {
-          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-          color: white;
-          width: 100%;
-        }
-        .traderx-btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-        }
-        .traderx-options {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 16px rgba(0, 163, 108, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           gap: 12px;
           margin-bottom: 20px;
         }
-        .traderx-option {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px;
-          background: #374151;
-          border-radius: 10px;
-          cursor: pointer;
-          font-size: 13px;
-        }
-        .traderx-option input {
-          accent-color: #3B82F6;
-          width: 16px;
-          height: 16px;
-        }
-        .traderx-close {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          background: none;
-          border: none;
-          color: #9CA3AF;
-          font-size: 24px;
-          cursor: pointer;
-        }
-        .traderx-close:hover {
-          color: white;
-        }
-        .traderx-preset-row {
-          display: flex;
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-        .traderx-preset {
-          flex: 1;
-          padding: 10px;
-          background: #374151;
-          border: 1px solid #4B5563;
-          border-radius: 8px;
-          color: #9CA3AF;
-          font-size: 12px;
+
+        .search-button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 163, 108, 0.4); }
+
+        .time-select-container { margin-bottom: 32px; }
+        .time-select {
+          width: 100%;
+          height: 56px;
+          background: #232830;
+          border: 2px solid rgba(242, 246, 248, 0.08);
+          border-radius: 12px;
+          padding: 0 16px;
+          color: #F2F6F8;
+          font-size: 15px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.15s;
-          text-align: center;
         }
-        .traderx-preset:hover {
-          background: #4B5563;
-          color: white;
-        }
+
+        .modal-footer { font-size: 12px; color: rgba(242, 246, 248, 0.4); text-align: center; }
       </style>
-      <div id="traderx-search-overlay"></div>
-      <div id="traderx-search-panel">
-        <button class="traderx-close" id="traderx-close">&times;</button>
-        <h2 style="margin: 0 0 8px 0; font-size: 24px;">⚡ Advanced Ticker Search</h2>
-        <p style="margin: 0 0 20px 0; color: #9CA3AF; font-size: 14px;">
-          Load 100-500+ posts about any stock or crypto
-        </p>
-        
-        <input type="text" class="traderx-input" id="traderx-ticker-input" 
-               placeholder="Enter ticker (e.g., BTC, AAPL, TSLA)" 
-               style="font-size: 18px; text-transform: uppercase;">
-        
-        <div class="traderx-preset-row">
-          <button class="traderx-preset" data-ticker="BTC">$BTC</button>
-          <button class="traderx-preset" data-ticker="ETH">$ETH</button>
-          <button class="traderx-preset" data-ticker="SPY">$SPY</button>
-          <button class="traderx-preset" data-ticker="TSLA">$TSLA</button>
-          <button class="traderx-preset" data-ticker="NVDA">$NVDA</button>
-        </div>
-        
-        <div class="traderx-options">
-          <label class="traderx-option">
-            <input type="checkbox" id="traderx-verified">
-            <span>Verified accounts only</span>
-          </label>
-          <label class="traderx-option">
-            <input type="checkbox" id="traderx-media">
-            <span>With charts/media</span>
-          </label>
-          <label class="traderx-option">
-            <input type="checkbox" id="traderx-trusted">
-            <span>Trusted only (fewer)</span>
-          </label>
-          <label class="traderx-option">
-            <input type="checkbox" id="traderx-quality" checked>
-            <span>Quality (1+ like)</span>
-          </label>
-        </div>
-        
-        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-          <select class="traderx-input" id="traderx-days" style="margin-bottom: 0;">
-            <option value="1">Last 24 hours</option>
-            <option value="3">Last 3 days</option>
-            <option value="7" selected>Last 7 days</option>
-            <option value="14">Last 14 days</option>
-          </select>
-        </div>
-        
-        <button class="traderx-btn traderx-btn-primary" id="traderx-search-btn">
-          🔍 Search $<span id="traderx-ticker-display">TICKER</span>
+
+      <div class="advanced-search-modal">
+        <button class="close-button" id="traderx-close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
         
-        <p style="margin: 16px 0 0 0; color: #6B7280; font-size: 11px; text-align: center;">
-          Uses X's native search • No API limits • Auto-scrolls to load more
-        </p>
+        <div class="modal-header">
+          <div class="modal-title">
+            <span class="modal-title-icon">⚡</span>
+            Advanced Ticker Search
+          </div>
+          <div class="modal-subtitle">Load 100-500+ posts about any stock or crypto</div>
+        </div>
+
+        <div class="modal-body">
+          <div class="search-input-container">
+            <input type="text" class="search-input" id="traderx-ticker-input" 
+                   placeholder="Enter ticker (e.g., BTC, AAPL, TSLA)">
+          </div>
+
+          <div class="quick-tickers">
+            <div class="ticker-pill" data-ticker="BTC">$BTC</div>
+            <div class="ticker-pill" data-ticker="ETH">$ETH</div>
+            <div class="ticker-pill" data-ticker="SPY">$SPY</div>
+            <div class="ticker-pill" data-ticker="TSLA">$TSLA</div>
+            <div class="ticker-pill" data-ticker="NVDA">$NVDA</div>
+          </div>
+
+          <div class="filters-grid">
+            <div class="filter-option" id="label-verified">
+              <div class="custom-checkbox"></div>
+              <span class="filter-label">Verified accounts</span>
+              <input type="checkbox" id="traderx-verified" style="display:none">
+            </div>
+            <div class="filter-option" id="label-media">
+              <div class="custom-checkbox"></div>
+              <span class="filter-label">With charts/media</span>
+              <input type="checkbox" id="traderx-media" style="display:none">
+            </div>
+            <div class="filter-option" id="label-trusted">
+              <div class="custom-checkbox"></div>
+              <span class="filter-label">Trusted only</span>
+              <input type="checkbox" id="traderx-trusted" style="display:none">
+            </div>
+            <div class="filter-option active" id="label-quality">
+              <div class="custom-checkbox"></div>
+              <span class="filter-label">Quality (1+ like)</span>
+              <input type="checkbox" id="traderx-quality" checked style="display:none">
+            </div>
+          </div>
+
+          <div class="time-select-container">
+            <select class="time-select" id="traderx-days">
+              <option value="1">Last 24 hours</option>
+              <option value="3">Last 3 days</option>
+              <option value="7" selected>Last 7 days</option>
+              <option value="14">Last 14 days</option>
+            </select>
+          </div>
+
+          <button class="search-button" id="traderx-search-btn">
+            <span class="search-button-icon">🔍</span>
+            <span>Search $<span id="traderx-ticker-display">TICKER</span></span>
+          </button>
+
+          <div class="modal-footer">
+            Uses X's native search • Auto-scrolls to load volume 
+          </div>
+        </div>
       </div>
     `;
 
@@ -930,13 +1040,23 @@ class TraderXAdvancedSearch {
     const display = document.getElementById('traderx-ticker-display');
     const searchBtn = document.getElementById('traderx-search-btn');
     const closeBtn = document.getElementById('traderx-close');
-    const overlay = document.getElementById('traderx-search-overlay');
+    const overlay = ui;
+
+    // Filter toggle logic
+    document.querySelectorAll('.filter-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const checkbox = option.querySelector('input');
+        checkbox.checked = !checkbox.checked;
+        option.classList.toggle('active', checkbox.checked);
+      });
+    });
 
     // Preset buttons
-    document.querySelectorAll('.traderx-preset').forEach(btn => {
+    document.querySelectorAll('.ticker-pill').forEach(btn => {
       btn.addEventListener('click', () => {
         input.value = btn.dataset.ticker;
         display.textContent = btn.dataset.ticker;
+        input.focus();
       });
     });
 
@@ -973,14 +1093,16 @@ class TraderXAdvancedSearch {
 
     // Close handlers
     closeBtn.addEventListener('click', () => ui.remove());
-    overlay.addEventListener('click', () => ui.remove());
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) ui.remove();
+    });
 
     // Focus input
     input.focus();
   }
 
   // ========================================================================
-  // UTILITY FUNCTIONS
+  // HELPERS
   // ========================================================================
 
   getDateString(daysAgo) {
@@ -993,72 +1115,69 @@ class TraderXAdvancedSearch {
     return document.querySelectorAll('article[data-testid="tweet"]').length;
   }
 
-  waitForElement(selector, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        resolve(element);
-        return;
+  async waitForElement(selector) {
+    return new Promise(resolve => {
+      if (document.querySelector(selector)) {
+        return resolve(document.querySelector(selector));
       }
 
       const observer = new MutationObserver(() => {
-        const el = document.querySelector(selector);
-        if (el) {
+        if (document.querySelector(selector)) {
+          resolve(document.querySelector(selector));
           observer.disconnect();
-          resolve(el);
         }
       });
 
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      setTimeout(() => {
-        observer.disconnect();
-        reject(new Error('Element not found'));
-      }, timeout);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
     });
   }
 
-  // ========================================================================
-  // FLOATING QUICK SEARCH BUTTON
-  // ========================================================================
-
   addQuickSearchButton() {
     const existing = document.getElementById('traderx-quick-search');
-    if (existing) return;
+    if (existing) existing.remove();
 
     const btn = document.createElement('button');
     btn.id = 'traderx-quick-search';
-    btn.innerHTML = '⚡ Ticker Search';
-    btn.style.cssText = `
-      position: fixed;
-      bottom: 100px;
-      right: 20px;
-      background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      border-radius: 50px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
-      z-index: 9999;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      transition: all 0.2s;
+    btn.className = 'ticker-search-fab';
+    btn.innerHTML = '<span class="ticker-search-icon">🔍</span>';
+
+    // Adding style for this button specifically since it's used across pages
+    const style = document.createElement('style');
+    style.textContent = `
+      .ticker-search-fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #00A36C;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 9990;
+        box-shadow: 0 8px 24px rgba(0, 163, 108, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .ticker-search-fab:hover {
+        background: #008C5A;
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(0, 163, 108, 0.4);
+      }
+      .ticker-search-icon {
+        font-size: 24px;
+        color: #141820;
+      }
     `;
-
-    btn.addEventListener('mouseenter', () => {
-      btn.style.transform = 'translateY(-3px)';
-      btn.style.boxShadow = '0 12px 32px rgba(124, 58, 237, 0.5)';
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = 'translateY(0)';
-      btn.style.boxShadow = '0 8px 24px rgba(124, 58, 237, 0.4)';
-    });
+    document.head.appendChild(style);
 
     btn.addEventListener('click', () => this.createSearchUI());
-
     document.body.appendChild(btn);
   }
 }

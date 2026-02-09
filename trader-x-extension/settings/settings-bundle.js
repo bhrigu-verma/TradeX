@@ -334,27 +334,153 @@ async function loadSuggested() {
 
         // Add dynamic styles for suggested accounts
         const styleEl = document.createElement('style');
-        styleEl.textContent = '.signal-directory-header{background:linear-gradient(135deg,#6366F1 0%,#8B5CF6 100%);padding:24px;border-radius:12px;margin-bottom:24px;color:white}.signal-directory-title{font-size:24px;font-weight:700;margin-bottom:8px}.signal-directory-subtitle{font-size:14px;opacity:0.9}.category-card{background:var(--bg-surface);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:20px;margin-bottom:24px;transition:all 0.3s ease}.category-card:hover{border-color:rgba(139,92,246,0.5);box-shadow:0 4px 12px rgba(139,92,246,0.1)}.category-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(139,92,246,0.1)}.category-icon{font-size:28px}.category-name{font-size:18px;font-weight:600;color:var(--text-primary);flex:1}.category-count{font-size:12px;color:var(--text-muted);background:rgba(139,92,246,0.1);padding:4px 12px;border-radius:12px}.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.account-card{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.1);border-radius:8px;text-decoration:none;color:var(--text-primary);transition:all 0.2s ease}.account-card:hover{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.3);transform:translateY(-2px);box-shadow:0 4px 8px rgba(139,92,246,0.2)}.account-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:14px;flex-shrink:0;overflow:hidden}.account-avatar img{width:100%;height:100%;object-fit:cover}.account-info{flex:1;min-width:0}.account-handle{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+        styleEl.textContent = `
+            .signal-directory-header {
+                background: linear-gradient(135deg, #00A36C 0%, #008f5d 100%);
+                padding: 32px;
+                border-radius: 16px;
+                margin-bottom: 32px;
+                color: white;
+                box-shadow: 0 8px 24px rgba(0, 163, 108, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .signal-directory-title {
+                font-size: 28px;
+                font-weight: 800;
+                margin-bottom: 8px;
+                letter-spacing: -0.02em;
+            }
+            .signal-directory-subtitle {
+                font-size: 15px;
+                opacity: 0.9;
+                font-weight: 500;
+            }
+            .category-card {
+                background: var(--color-graphite);
+                border: 1px solid var(--color-soft-gray);
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 32px;
+                transition: all 0.3s ease;
+            }
+            .category-card:hover {
+                border-color: rgba(0, 163, 108, 0.4);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+                transform: translateY(-2px);
+            }
+            .category-header {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 24px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid var(--color-soft-gray);
+            }
+            .category-icon { font-size: 32px; }
+            .category-name {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--color-text);
+                flex: 1;
+            }
+            .category-count {
+                font-size: 13px;
+                color: var(--accent-primary);
+                background: rgba(0, 163, 108, 0.1);
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-weight: 600;
+                border: 1px solid rgba(0, 163, 108, 0.2);
+            }
+            .accounts-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 16px;
+            }
+            .account-card {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 14px;
+                background: var(--color-charcoal);
+                border: 1px solid var(--color-soft-gray);
+                border-radius: 12px;
+                text-decoration: none;
+                color: var(--color-text);
+                transition: all 0.2s ease;
+            }
+            .account-card:hover {
+                background: var(--color-soft-gray);
+                border-color: var(--accent-primary);
+                transform: scale(1.02);
+            }
+            .account-avatar {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--color-graphite);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--accent-primary);
+                font-weight: 700;
+                font-size: 14px;
+                flex-shrink: 0;
+                overflow: hidden;
+                border: 1px solid var(--color-soft-gray);
+            }
+            .account-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .account-handle {
+                font-size: 14px;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        `;
         document.head.appendChild(styleEl);
 
-        let html = '<div class="signal-directory-header"><div class="signal-directory-title">📡 Signal Directory</div><div class="signal-directory-subtitle">' + Object.keys(data.accounts).length + ' categories • ' + Object.values(data.accounts).flat().length + ' verified accounts</div></div>';
+        let html = '<div class="signal-directory-header"><div class="signal-directory-title">📡 Signal Directory</div><div class="signal-directory-subtitle">' + Object.keys(data.accounts).length + ' categories • ' + Object.values(data.accounts).flat().length + ' curated accounts</div></div>';
 
         Object.entries(data.accounts).forEach(([key, handles]) => {
             const icon = categoryIcons[key] || '📊';
             const name = categoryNames[key] || key.replace(/_/g, ' ');
 
-            html += '<div class="category-card"><div class="category-header"><span class="category-icon">' + icon + '</span><span class="category-name">' + name + '</span><span class="category-count">' + handles.length + ' accounts</span></div><div class="accounts-grid">';
+            html += `<div class="category-card"><div class="category-header"><span class="category-icon">${icon}</span><span class="category-name">${name}</span><span class="category-count">${handles.length} accounts</span></div><div class="accounts-grid">`;
 
             handles.forEach(handle => {
                 const cleanHandle = handle.replace('@', '');
                 const initials = cleanHandle.substring(0, 2).toUpperCase();
-                html += '<a href="https://x.com/' + cleanHandle + '" target="_blank" class="account-card" data-handle="' + cleanHandle + '"><div class="account-avatar" data-handle="' + cleanHandle + '"><img src="https://unavatar.io/twitter/' + cleanHandle + '" onerror="this.style.display=\'none\'; this.parentElement.textContent=\'' + initials + '\'" alt="' + cleanHandle + '"></div><div class="account-info"><div class="account-handle">@' + cleanHandle + '</div></div></a>';
+                // Using unavatar.io with a fallback to initials
+                // Note: Twitter images are often rate-limited by free services.
+                // Added a smooth fallback so it looks good even if images fail to load.
+                const avatarUrl = `https://unavatar.io/twitter/${cleanHandle}?ttl=1h`;
+
+                html += `
+                    <a href="https://x.com/${cleanHandle}" target="_blank" class="account-card" data-handle="${cleanHandle}">
+                        <div class="account-avatar" style="position: relative; background: var(--color-soft-gray); border: 1px solid var(--border-color);">
+                            <span style="position: absolute; color: var(--accent-primary); font-weight: 700;">${initials}</span>
+                            <img src="${avatarUrl}" 
+                                 onload="this.style.opacity='1'; this.previousElementSibling.style.display='none'"
+                                 onerror="this.style.display='none'" 
+                                 alt="${cleanHandle}"
+                                 style="opacity: 0; transition: opacity 0.3s ease; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 50%;">
+                        </div>
+                        <div class="account-info">
+                            <div class="account-handle">@${cleanHandle}</div>
+                        </div>
+                    </a>`;
             });
 
             html += '</div></div>';
         });
 
         container.innerHTML = html;
+
     } catch (error) {
         console.error('[SETTINGS] Failed to load suggested accounts:', error);
         container.innerHTML = '<p class="text-muted">Failed to load suggested accounts.</p>';

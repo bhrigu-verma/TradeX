@@ -1,18 +1,112 @@
-/* === TRADERX CONTENT STYLES v1.2 === */
+/* === TRADERX PREMIUM FINTECH REDESIGN === */
 
-/* ============================================
-   BASE TWEET STYLING
-   ============================================ */
+:root {
+  /* Colors */
+  --graphite: #141820;
+  --soft-gray: #232830;
+  --emerald: #00A36C;
+  --brass: #C9A66B;
+  --text-primary: #F2F6F8;
+  --graphite-lighter: #1A1F2A;
+  --soft-gray-darker: #1C2028;
+  --emerald-dark: #008C5A;
+  --emerald-transparent: rgba(0, 163, 108, 0.12);
+  --brass-transparent: rgba(201, 166, 107, 0.12);
+  --text-secondary: rgba(242, 246, 248, 0.6);
+  --text-tertiary: rgba(242, 246, 248, 0.4);
+  --error: #EF4444;
+
+  /* Consistent Spacing Scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+
+  /* Border Radius Scale */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* Typography Scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+
+  /* Font Weights */
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Gradients */
+  --gradient-bullish: linear-gradient(90deg, #00A36C 0%, #00D68F 100%);
+  --gradient-bearish: linear-gradient(90deg, #EF4444 0%, #F97316 100%);
+  --gradient-neutral: linear-gradient(90deg, #6B7280 0%, #9CA3AF 100%);
+  --gradient-premium: linear-gradient(135deg, #C9A66B 0%, #E5C88C 100%);
+  --gradient-emerald: linear-gradient(135deg, #00A36C 0%, #00D68F 100%);
+}
+
+.glass-card {
+  background: rgba(35, 40, 48, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(242, 246, 248, 0.12);
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--soft-gray) 0%,
+      rgba(242, 246, 248, 0.06) 50%,
+      var(--soft-gray) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+button,
+.interactive {
+  transition: all var(--transition-base);
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
 
 article[data-testid="tweet"] {
   transition: all 0.15s ease;
   position: relative;
 }
 
-.traderx-hidden {
-  display: none !important;
-}
-
+.traderx-hidden,
 .traderx-search-hidden {
   display: none !important;
 }

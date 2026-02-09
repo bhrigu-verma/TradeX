@@ -47,89 +47,108 @@ class TrackerDashboard {
 
     const dashboard = document.createElement('div');
     dashboard.id = 'traderx-tracker-dashboard';
+    dashboard.className = 'market-pulse-container';
     dashboard.innerHTML = `
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
         #traderx-tracker-dashboard {
+          /* Design Tokens */
+          --graphite: #141820;
+          --soft-gray: #232830;
+          --emerald: #00A36C;
+          --brass: #C9A66B;
+          --text-primary: #F2F6F8;
+          --graphite-lighter: #1A1F2A;
+          --soft-gray-darker: #1C2028;
+          --emerald-dark: #008C5A;
+          --emerald-transparent: rgba(0, 163, 108, 0.12);
+          --brass-transparent: rgba(201, 166, 107, 0.12);
+          --text-secondary: rgba(242, 246, 248, 0.6);
+          --text-tertiary: rgba(242, 246, 248, 0.4);
+          --error: #EF4444;
+
           position: fixed;
           top: 80px;
           left: 20px;
-          width: 320px; /* Slightly wider */
-          max-height: 500px;
-          background: #001233; /* Abyssal */
-          border: 1px solid #0466c8;
+          width: 320px;
+          max-height: 520px;
+          background: var(--graphite);
+          border: 1px solid rgba(242, 246, 248, 0.08);
           border-radius: 16px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
           z-index: 9998;
           font-family: 'Inter', -apple-system, sans-serif;
-          color: #e0e7ff;
+          color: var(--text-primary);
           overflow: hidden;
-          transition: height 0.3s ease, width 0.3s ease;
-          resize: both;
+          transition: height 0.3s ease, transform 0.2s ease;
         }
         
         #traderx-tracker-dashboard.minimized {
-          height: 56px;
-          max-height: 56px;
+          height: 64px;
+          max-height: 64px;
         }
         
         #traderx-tracker-dashboard.hidden {
           display: none;
         }
         
-        .td-header {
+        .market-pulse-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 16px 20px;
-          background: linear-gradient(135deg, #002855 0%, #001845 100%);
           cursor: grab;
           user-select: none;
-          border-bottom: 1px solid #023e7d;
+          border-bottom: 1px solid rgba(242, 246, 248, 0.06);
         }
         
-        .td-header:active {
+        .market-pulse-header:active {
           cursor: grabbing;
         }
         
-        .td-title {
-          font-size: 13px;
-          font-weight: 700;
-          color: #ffffff;
+        .market-pulse-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text-primary);
+          letter-spacing: -0.01em;
           display: flex;
           align-items: center;
           gap: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
         }
         
-        .td-title svg {
-          stroke: #0466c8;
+        .market-pulse-icon {
+          width: 20px;
+          height: 20px;
+          color: var(--emerald);
+          display: flex;
+          align-items: center;
         }
         
-        .td-controls {
+        .market-pulse-actions {
           display: flex;
           gap: 8px;
         }
         
-        .td-btn {
-          background: rgba(4, 102, 200, 0.1);
-          border: 1px solid transparent;
-          color: #979dac;
-          cursor: pointer;
-          padding: 6px;
+        .icon-button {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: var(--soft-gray);
+          border: 1px solid rgba(242, 246, 248, 0.08);
+          color: var(--text-secondary);
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s;
-          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        .td-btn:hover {
-          background: rgba(4, 102, 200, 0.2);
-          color: #ffffff;
-          border-color: #0466c8;
+
+        .icon-button:hover {
+          background: var(--graphite-lighter);
+          border-color: var(--emerald);
+          color: var(--text-primary);
+          transform: translateY(-1px);
         }
         
         .td-content {
@@ -137,206 +156,207 @@ class TrackerDashboard {
           display: flex;
           flex-direction: column;
           gap: 12px;
-          max-height: 400px;
+          max-height: 420px;
           overflow-y: auto;
-          overflow-x: hidden;
-          background: #001233;
+          background: var(--graphite);
         }
         
         .td-content::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .td-content::-webkit-scrollbar-track {
-          background: #001845;
+          width: 4px;
         }
         
         .td-content::-webkit-scrollbar-thumb {
-          background: #33415c;
-          border-radius: 3px;
+          background: var(--soft-gray);
+          border-radius: 2px;
         }
         
-        /* Cards */
-        .td-card {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid #1a2c4e;
+        /* Ticker Card */
+        .ticker-card {
+          background: var(--soft-gray);
+          border: 1px solid rgba(242, 246, 248, 0.06);
           border-radius: 12px;
           padding: 16px;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
           cursor: pointer;
-          position: relative;
         }
-        
-        .td-card:hover {
-          border-color: #0466c8;
-          background: rgba(4, 102, 200, 0.05);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+        .ticker-card:hover {
+          border-color: var(--emerald);
+          box-shadow: 0 4px 16px rgba(0, 163, 108, 0.12);
+          transform: translateX(2px);
         }
-        
-        .td-card-header {
+
+        .ticker-header {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
           margin-bottom: 12px;
         }
-        
-        .td-ticker-info {
-          display: flex;
-          align-items: baseline;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-        
-        .td-ticker {
-          font-family: inherit;
+
+        .ticker-symbol {
+          font-size: 18px;
           font-weight: 700;
-          font-size: 15px;
-          color: #ffffff;
+          color: var(--text-primary);
+          letter-spacing: -0.02em;
         }
-        
-        .td-card.volume-spike {
-          border-color: #0466c8 !important;
-          box-shadow: 0 0 15px rgba(4, 102, 200, 0.3);
+
+        .ticker-price {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          margin-left: 8px;
         }
-        
-        .td-badge {
+
+        .price-change {
+          font-size: 12px;
+          font-weight: 600;
+          margin-left: 6px;
+        }
+
+        .price-change.positive { color: var(--emerald); }
+        .price-change.negative { color: var(--error); }
+
+        /* Volatility Badge */
+        .volatility-badge {
+          background: var(--brass-transparent);
+          border: 1px solid var(--brass);
+          color: var(--brass);
+          padding: 4px 10px;
+          border-radius: 6px;
           font-size: 10px;
           font-weight: 700;
-          padding: 4px 8px;
-          border-radius: 6px;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
           display: flex;
           align-items: center;
           gap: 4px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
         }
-        
-        .td-badge.bullish {
-          background: rgba(4, 102, 200, 0.2);
-          color: #4cc9f0;
-          border: 1px solid rgba(4, 102, 200, 0.4);
+
+        .volatility-badge.bullish {
+          background: var(--emerald-transparent);
+          border-color: var(--emerald);
+          color: var(--emerald);
         }
-        
-        .td-badge.bearish {
+
+        .volatility-badge.bearish {
           background: rgba(239, 68, 68, 0.1);
-          color: #f87171;
-          border: 1px solid rgba(239, 68, 68, 0.3);
+          border-color: var(--error);
+          color: var(--error);
         }
-        
-        .td-badge.neutral {
-          background: rgba(125, 133, 151, 0.1);
-          color: #979dac;
-          border: 1px solid rgba(125, 133, 151, 0.3);
+
+        .volatility-badge.neutral {
+          background: var(--soft-gray-darker);
+          border-color: var(--text-tertiary);
+          color: var(--text-tertiary);
         }
-        
-        .td-badge.volatile {
-          background: rgba(255, 159, 28, 0.1);
-          color: #ffb703;
-          border: 1px solid rgba(255, 159, 28, 0.3);
-        }
-        
-        .td-meter {
+
+        /* Sentiment Bar */
+        .sentiment-bar {
           height: 4px;
-          background: #002855;
-          border-radius: 4px;
+          background: rgba(242, 246, 248, 0.08);
+          border-radius: 2px;
           overflow: hidden;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           position: relative;
         }
-        
-        .td-meter-fill {
+
+        .sentiment-fill {
           height: 100%;
-          border-radius: 4px;
+          border-radius: 2px;
           transition: all 0.5s ease;
           position: absolute;
-          top: 0;
-        }
-        
-        /* Center origin meter */
-        .td-meter-center {
-          width: 2px;
-          height: 100%;
-          background: #33415c;
-          position: absolute;
           left: 50%;
-          top: 0;
-          z-index: 1;
         }
-        
-        .td-meta {
-          display: flex;
-          justify-content: space-between;
-          font-size: 11px;
-          color: #7d8597;
-          font-feature-settings: "tnum";
-          font-variant-numeric: tabular-nums;
+
+        .sentiment-fill.bullish {
+          background: linear-gradient(90deg, var(--emerald) 0%, #00D68F 100%);
         }
-        
-        .td-footer {
-          padding: 12px 20px;
-          background: #001233;
-          border-top: 1px solid #1a2c4e;
+
+        .sentiment-fill.bearish {
+          background: linear-gradient(90deg, var(--error) 0%, #F97316 100%);
+        }
+
+        .ticker-footer {
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
-        
-        .td-status {
+
+        .tweet-count {
+          font-size: 12px;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .last-update {
+          font-size: 11px;
+          color: var(--text-tertiary);
+          font-weight: 400;
+        }
+
+        /* Live Feed Indicator */
+        .live-feed-indicator {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: #5c677d;
-          font-weight: 600;
-          letter-spacing: 0.05em;
+          gap: 10px;
+          padding: 14px 20px;
+          border-top: 1px solid rgba(242, 246, 248, 0.06);
+          background: var(--graphite);
         }
-        
-        .td-dot {
+
+        .live-dot {
           width: 8px;
           height: 8px;
+          background: var(--emerald);
           border-radius: 50%;
-          background: #0466c8;
-          box-shadow: 0 0 8px rgba(4, 102, 200, 0.5);
-          animation: livePulse 2s infinite;
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          box-shadow: 0 0 8px rgba(0, 163, 108, 0.4);
         }
-        
-        @keyframes livePulse {
+
+        .live-dot.loading {
+          background: var(--brass);
+          box-shadow: 0 0 8px rgba(201, 166, 107, 0.4);
+        }
+
+        @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(0.8); }
         }
-        
-        .td-dot.loading {
-          background: #ffb703;
-          box-shadow: 0 0 8px rgba(255, 183, 3, 0.5);
+
+        .live-text {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--emerald);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
       </style>
       
-      <div class="td-header" id="td-header">
-        <div class="td-title">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-          </svg>
+      <div class="market-pulse-header" id="td-header">
+        <div class="market-pulse-title">
+          <div class="market-pulse-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
           Market Pulse
         </div>
-        <div class="td-controls">
-          <button class="td-btn" id="td-manage" title="Manage Tickers">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="market-pulse-actions">
+          <button class="icon-button" id="td-manage" title="Manage Tickers">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="16"></line>
               <line x1="8" y1="12" x2="16" y2="12"></line>
             </svg>
           </button>
-          <button class="td-btn" id="td-refresh" title="Refresh">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 4v6h-6"></path>
-              <path d="M1 20v-6h6"></path>
+          <button class="icon-button" id="td-refresh" title="Refresh">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6"></path>
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
             </svg>
           </button>
-          <button class="td-btn" id="td-minimize" title="Minimize">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="icon-button" id="td-minimize" title="Minimize">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
           </button>
@@ -347,11 +367,9 @@ class TrackerDashboard {
         ${this.tickers.map(ticker => this.createCardHTML(ticker)).join('')}
       </div>
       
-      <div class="td-footer">
-        <div class="td-status">
-          <div class="td-dot" id="td-status-dot"></div>
-          <span>LIVE FEED</span>
-        </div>
+      <div class="live-feed-indicator">
+        <div class="live-dot" id="td-status-dot"></div>
+        <span class="live-text">Live Feed Active</span>
       </div>
     `;
 
@@ -364,36 +382,32 @@ class TrackerDashboard {
     const data = this.cardData[ticker];
     const { badgeClass, icon, label } = this.getStatusConfig(data.status);
 
-    // Calculate bar position
-    // If sentiment > 0, left is 50%, width is sentiment * 50%
-    // If sentiment < 0, left is 50% - (adjust), width is sentiment * 50%
     const sentiment = data.sentiment || 0;
     const barWidth = Math.min(Math.abs(sentiment) * 50, 50);
     const barLeft = sentiment >= 0 ? 50 : 50 - barWidth;
-    const barColor = sentiment >= 0 ? '#10B981' : '#EF4444';
+    const sentimentType = sentiment >= 0 ? 'bullish' : 'bearish';
 
     return `
-      <div class="td-card" id="td-card-${ticker}" title="Click to search $${ticker} tweets">
-        <div class="td-card-header">
-          <div class="td-ticker-info">
-            <span class="td-ticker">$${ticker}</span>
-            <span class="td-price" id="td-price-${ticker}" style="font-size: 11px; color: #94A3B8; margin-left: 6px;">--</span>
-            <span class="td-change" id="td-change-${ticker}" style="font-size: 10px; margin-left: 4px;">--</span>
+      <div class="ticker-card" id="td-card-${ticker}" title="Click to search $${ticker} tweets">
+        <div class="ticker-header">
+          <div style="display: flex; align-items: baseline;">
+            <span class="ticker-symbol">$${ticker}</span>
+            <span class="ticker-price" id="td-price-${ticker}">--</span>
+            <span class="price-change" id="td-change-${ticker}">--</span>
           </div>
-          <div class="td-badge ${badgeClass}" id="td-badge-${ticker}">
+          <div class="volatility-badge ${badgeClass}" id="td-badge-${ticker}">
             ${icon}
             <span id="td-label-${ticker}">${label}</span>
           </div>
         </div>
-        <div class="td-meter">
-          <div class="td-meter-center"></div>
-          <div class="td-meter-fill" id="td-bar-${ticker}"
-               style="left: ${barLeft}%; width: ${barWidth}%; background: ${barColor}">
+        <div class="sentiment-bar">
+          <div class="sentiment-fill ${sentimentType}" id="td-bar-${ticker}"
+               style="left: ${barLeft}%; width: ${barWidth}%;">
           </div>
         </div>
-        <div class="td-meta">
-          <span id="td-vol-${ticker}">${data.sampleSize} tweets</span>
-          <span id="td-time-${ticker}">${data.lastUpdated || '--:--'}</span>
+        <div class="ticker-footer">
+          <span class="tweet-count" id="td-vol-${ticker}">${data.sampleSize} tweets</span>
+          <span class="last-update" id="td-time-${ticker}">${data.lastUpdated || '--:--'}</span>
         </div>
       </div>
     `;
@@ -418,7 +432,7 @@ class TrackerDashboard {
       return {
         badgeClass: 'volatile',
         label: 'VOLATILE',
-        icon: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>'
+        icon: '⚡'
       };
     } else if (statusUpper.includes('LOADING')) {
       return {
@@ -443,8 +457,8 @@ class TrackerDashboard {
     const { badgeClass, icon, label } = this.getStatusConfig(data.status);
     const badge = document.getElementById(`td-badge-${ticker}`);
     if (badge) {
-      badge.className = `td-badge ${badgeClass}`;
-      badge.innerHTML = `${icon} <span>${label}</span>`;
+      badge.className = `volatility-badge ${badgeClass}`;
+      badge.innerHTML = `${icon} <span id="td-label-${ticker}">${label}</span>`;
     }
 
     // Update metric bars
@@ -453,11 +467,11 @@ class TrackerDashboard {
       const sentiment = data.sentiment || 0;
       const barWidth = Math.min(Math.abs(sentiment) * 50, 50);
       const barLeft = sentiment >= 0 ? 50 : 50 - barWidth;
-      const barColor = sentiment >= 0 ? '#10B981' : '#EF4444';
+      const sentimentType = sentiment >= 0 ? 'bullish' : 'bearish';
 
       bar.style.width = `${barWidth}%`;
       bar.style.left = `${barLeft}%`;
-      bar.style.background = barColor; // Dynamic color update
+      bar.className = `sentiment-fill ${sentimentType}`;
     }
 
     // Update meta - show influencer count if available

@@ -16,28 +16,26 @@ class TraderXSidebar {
   }
 
   // ========================================================================
-  // STYLES - DEEP SEA BLUE THEME
+  // STYLES - PREMIUM FINTECH THEME
   // ========================================================================
   injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-      
       #traderx-sidebar {
         position: fixed;
         top: 0;
-        right: -400px; /* Wider for better spacing */
-        width: 400px;
+        right: -480px;
+        width: 480px;
         height: 100vh;
-        background: linear-gradient(180deg, #001233 0%, #001845 100%); /* Abyssal to Midnight */
-        border-left: 1px solid #023e7d;
-        z-index: 9999;
-        transition: right 0.4s cubic-bezier(0.2, 0, 0, 1);
+        background: #141820;
+        border-left: 1px solid rgba(242, 246, 248, 0.12);
+        z-index: 99999;
+        transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        color: #e0e7ff;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
+        color: #F2F6F8;
+        font-family: 'Inter', sans-serif;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
         overflow: hidden;
       }
       
@@ -45,339 +43,210 @@ class TraderXSidebar {
         right: 0;
       }
       
-      /* Header - Deep Navy Gradient */
-      .tx-header {
-        padding: 28px 32px;
-        background: linear-gradient(135deg, #002855 0%, #001845 100%);
-        border-bottom: 1px solid #023e7d;
+      .pro-header {
+        padding: 28px 24px;
+        border-bottom: 1px solid rgba(242, 246, 248, 0.08);
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       }
       
-      .tx-title {
-        font-size: 22px;
-        font-weight: 800;
-        color: #ffffff;
+      .pro-logo-container {
         display: flex;
         align-items: center;
-        gap: 16px;
-        letter-spacing: -0.02em;
-        text-shadow: 0 2px 10px rgba(4, 102, 200, 0.4);
+        gap: 14px;
       }
       
-      .tx-title-icon {
-        width: 42px;
-        height: 42px;
-        background: linear-gradient(135deg, #0466c8 0%, #023e7d 100%);
+      .pro-icon {
+        width: 44px;
+        height: 44px;
+        background: #00A36C;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(4, 102, 200, 0.3);
+        font-size: 24px;
+      }
+      
+      .pro-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #F2F6F8;
+        letter-spacing: -0.01em;
+      }
+      
+      .pro-title span {
+        background: linear-gradient(135deg, #C9A66B 0%, #E5C88C 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
       
       .tx-close {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #979dac;
-        cursor: pointer;
-        padding: 12px;
-        border-radius: 12px;
-        transition: all 0.2s;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #232830;
+        border: 1px solid rgba(242, 246, 248, 0.08);
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: rgba(242, 246, 248, 0.6);
       }
       
       .tx-close:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #ffffff;
-        border-color: rgba(255, 255, 255, 0.2);
+        background: #EF4444;
+        color: white;
         transform: rotate(90deg);
       }
       
-      /* Content Area */
       .tx-content {
         flex: 1;
         overflow-y: auto;
-        padding: 32px; /* Generous padding */
-        display: flex;
-        flex-direction: column;
-        gap: 32px;
+        padding: 0;
       }
       
-      .tx-content::-webkit-scrollbar {
-        width: 8px;
-      }
-      
-      .tx-content::-webkit-scrollbar-track {
-        background: #001233;
-      }
-      
-      .tx-content::-webkit-scrollbar-thumb {
-        background: #33415c;
-        border-radius: 4px;
-        border: 2px solid #001233;
-      }
-      
-      /* Section Headers */
-      .tx-section-title {
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: #5c677d;
-        margin-bottom: 20px;
+      .section-header {
+        padding: 20px 24px 12px 24px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
       }
       
-      .tx-section-title::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #023e7d;
+      .section-icon {
+        font-size: 18px;
+        color: rgba(242, 246, 248, 0.6);
       }
       
-      /* Cards & Containers */
-      .tx-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid #1a2c4e; /* Custom dark border */
-        border-radius: 16px;
-        padding: 24px;
-        transition: all 0.3s ease;
+      .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(242, 246, 248, 0.6);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
       }
       
-      .tx-card:hover {
-        border-color: #0466c8;
-        background: rgba(4, 102, 200, 0.05);
-        transform: translateY(-2px);
-      }
-      
-      /* Toggle Row */
-      .tx-toggle-row {
+      .toggle-card {
+        margin: 0 24px 20px 24px;
+        background: #232830;
+        border: 1px solid rgba(242, 246, 248, 0.08);
+        border-radius: 14px;
+        padding: 18px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
       }
       
-      .tx-toggle-label {
-        font-size: 16px;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 4px;
-      }
+      .toggle-info { flex: 1; }
+      .toggle-title { font-size: 16px; font-weight: 600; color: #F2F6F8; margin-bottom: 4px; }
+      .toggle-description { font-size: 13px; color: rgba(242, 246, 248, 0.6); font-weight: 400; }
       
-      .tx-toggle-sub {
-        font-size: 13px;
-        color: #979dac;
-      }
-      
-      /* Switch */
-      .tx-switch {
-        position: relative;
-        width: 56px;
-        height: 30px;
-      }
-      
-      .tx-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      
-      .tx-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #002855;
-        transition: .4s;
-        border-radius: 30px;
-        border: 1px solid #023e7d;
-      }
-      
-      .tx-slider:before {
-        position: absolute;
-        content: "";
-        height: 22px;
-        width: 22px;
-        left: 3px;
-        bottom: 3px;
-        background-color: #7d8597;
-        transition: .4s;
-        border-radius: 50%;
-      }
-      
-      input:checked + .tx-slider {
-        background-color: #0466c8;
-        border-color: #0353a4;
-      }
-      
-      input:checked + .tx-slider:before {
-        transform: translateX(26px);
-        background-color: #ffffff;
-      }
-      
-      /* Buttons Grid */
-      .tx-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      
-      .tx-btn {
-        width: 100%;
-        padding: 18px 24px;
+      .toggle-switch {
+        width: 50px;
+        height: 28px;
+        background: rgba(242, 246, 248, 0.12);
         border-radius: 14px;
-        border: 1px solid transparent;
-        font-weight: 600;
-        font-size: 14px;
+        position: relative;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s ease;
+      }
+      
+      .toggle-switch.active { background: #00A36C; }
+      
+      .toggle-knob {
+        width: 22px;
+        height: 22px;
+        background: #F2F6F8;
+        border-radius: 50%;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .toggle-switch.active .toggle-knob { left: 25px; }
+      
+      .action-button {
+        margin: 0 24px 12px 24px;
+        height: 56px;
+        background: #232830;
+        border: 1px solid rgba(242, 246, 248, 0.08);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        width: calc(100% - 48px);
+        outline: none;
       }
       
-      /* Primary Button - Mid Blue Gradient */
-      .tx-btn-primary {
-        background: linear-gradient(135deg, #0466c8 0%, #0353a4 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 15px rgba(4, 102, 200, 0.3);
-        border: 1px solid #0466c8;
+      .action-button:hover {
+        background: #00A36C;
+        border-color: #00A36C;
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(0, 163, 108, 0.2);
       }
       
-      .tx-btn-primary:hover {
-        background: linear-gradient(135deg, #023e7d 0%, #002855 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(4, 102, 200, 0.4);
-      }
+      .action-button:hover .button-text { color: #141820; }
+      .button-text { font-size: 16px; font-weight: 600; color: #F2F6F8; transition: color 0.2s ease; }
       
-      /* Secondary Button - Darker Navy */
-      .tx-btn-secondary {
-        background: rgba(4, 102, 200, 0.1);
-        color: #4cc9f0; /* Keeping a slight bright accent for text readability */
-        border: 1px solid rgba(4, 102, 200, 0.3);
-      }
-      
-      .tx-btn-secondary:hover {
-        background: rgba(4, 102, 200, 0.2);
-        color: #ffffff;
-        border-color: #0466c8;
-      }
-      
-      /* Outline Button */
-      .tx-btn-outline {
-        background: transparent;
-        border: 1px solid #33415c;
-        color: #979dac;
-      }
-      
-      .tx-btn-outline:hover {
-        border-color: #7d8597;
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.05);
-      }
-      
-      /* Export Actions Section */
-      .tx-export-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      
-      .tx-btn-ai {
-        background: linear-gradient(135deg, #0353a4 0%, #023e7d 100%);
-        color: white;
-        border: 1px solid #0466c8;
-      }
-      
-      .tx-btn-ai:hover {
-        box-shadow: 0 0 15px rgba(4, 102, 200, 0.5);
-      }
-
-      .tx-btn-plain {
-        background: #001845;
-        color: #7d8597;
-        border: 1px solid #023e7d;
-      }
-      
-      .tx-btn-plain:hover {
-        background: #002855;
-        color: white;
-      }
-
-      /* Footer */
-      .tx-footer {
-        padding: 24px 32px;
-        border-top: 1px solid #023e7d;
-        background: #001233;
-        text-align: center;
-      }
-      
-      .tx-credits {
-        font-size: 11px;
-        color: #5c677d;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-      }
-      
-      .tx-link {
-        color: #0466c8;
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-      
-      .tx-link:hover {
-        color: #4cc9f0;
-        text-decoration: underline;
-      }
-      
-      /* Floating Trigger */
-      #tx-trigger {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 64px;
-        height: 64px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, #0466c8 0%, #023e7d 100%);
-        color: white;
+      .premium-button {
+        margin: 0 24px 20px 24px;
+        height: 56px;
+        background: linear-gradient(135deg, #C9A66B 0%, #E5C88C 100%);
         border: none;
-        box-shadow: 0 10px 30px rgba(2, 62, 125, 0.5);
-        cursor: pointer;
-        z-index: 9990;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(201, 166, 107, 0.3);
+        width: calc(100% - 48px);
       }
       
-      #tx-trigger:hover {
-        transform: translateY(-5px) scale(1.05);
-        box-shadow: 0 15px 40px rgba(2, 62, 125, 0.6);
+      .premium-button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201, 166, 107, 0.5); }
+      .premium-button-icon { font-size: 20px; color: #141820; }
+      .premium-button-text { font-size: 16px; font-weight: 700; color: #141820; }
+      
+      .modal-footer { padding: 16px 24px 20px 24px; border-top: 1px solid rgba(242, 246, 248, 0.06); }
+      .footer-text { font-size: 12px; color: rgba(242, 246, 248, 0.4); text-align: center; }
+      .footer-link { color: #00A36C; text-decoration: none; font-weight: 600; }
+      .footer-link:hover { text-decoration: underline; }
+      
+      /* Market Pulse FAB (Top Right) */
+      .market-pulse-fab {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #232830;
+        border: 1px solid rgba(242, 246, 248, 0.12);
+        border-radius: 12px;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        z-index: 9998;
       }
       
-      #tx-trigger svg {
-        width: 32px;
-        height: 32px;
-        stroke-width: 2;
+      .market-pulse-fab:hover {
+        background: #00A36C;
+        border-color: #00A36C;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 163, 108, 0.3);
       }
-
-      /* Icons */
-      .tx-icon {
-        width: 18px;
-        height: 18px;
-      }
-
+      
+      .market-pulse-fab:hover .fab-text, .market-pulse-fab:hover .fab-icon { color: #141820; }
+      .fab-icon { width: 20px; height: 20px; color: #00A36C; transition: color 0.2s ease; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+      .fab-text { font-size: 14px; font-weight: 700; color: #F2F6F8; letter-spacing: -0.01em; transition: color 0.2s ease; }
     `;
     document.head.appendChild(style);
   }
@@ -390,18 +259,13 @@ class TraderXSidebar {
     sidebar.id = 'traderx-sidebar';
 
     sidebar.innerHTML = `
-      <div class="tx-header">
-        <div class="tx-title">
-          <div class="tx-title-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-          </div>
-          TraderX Pro
+      <div class="pro-header">
+        <div class="pro-logo-container">
+          <div class="pro-icon">⚡</div>
+          <div class="pro-title">TraderX <span>Pro</span></div>
         </div>
-        <button class="tx-close" id="tx-close-btn" title="Close Sidebar">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="tx-close" id="tx-close-btn" title="Close Panel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -409,92 +273,77 @@ class TraderXSidebar {
       </div>
       
       <div class="tx-content">
-        <!-- TRUSTED MODE -->
-        <div class="tx-section">
-          <div class="tx-section-title">
-            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            Global Filter
+        <!-- MODE SETTINGS -->
+        <div class="section-header">
+          <span class="section-icon">🛡️</span>
+          <span class="section-title">Filtering Mode</span>
+        </div>
+        
+        <div class="toggle-card">
+          <div class="toggle-info">
+            <div class="toggle-title">Trusted Mode</div>
+            <div class="toggle-description">Only show verified signal accounts</div>
           </div>
-          <div class="tx-card tx-toggle-row">
-            <div>
-              <div class="tx-toggle-label">Trusted Mode</div>
-              <div class="tx-toggle-sub">Verified accounts only</div>
-            </div>
-            <label class="tx-switch">
-              <input type="checkbox" id="tx-trusted-toggle" ${this.trustedMode ? 'checked' : ''}>
-              <span class="tx-slider"></span>
-            </label>
+          <div class="toggle-switch ${this.trustedMode ? 'active' : ''}" id="tx-trusted-toggle">
+            <div class="toggle-knob"></div>
           </div>
         </div>
         
-        <!-- RESEARCH TOOLS -->
-        <div class="tx-section">
-          <div class="tx-section-title">
-            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            Market Tools
-          </div>
-          
-          <div class="tx-grid">
-            <button class="tx-btn tx-btn-primary" id="tx-adv-search">
-              Advanced Search
-            </button>
-            
-            <button class="tx-btn tx-btn-secondary" id="tx-directory-open">
-              Signal Directory
-            </button>
+        <!-- TOOLS -->
+        <div class="section-header">
+          <span class="section-icon">🛠️</span>
+          <span class="section-title">Analysis Tools</span>
+        </div>
+        
+        <button class="action-button" id="tx-adv-search">
+          <span class="button-text">Advanced Search</span>
+        </button>
+        
+        <button class="action-button" id="tx-directory-open">
+          <span class="button-text">Signal Directory</span>
+        </button>
 
-            <button class="tx-btn tx-btn-outline" id="tx-tracker-toggle">
-              Market Pulse
-            </button>
-          </div>
+        <button class="action-button" id="tx-tracker-toggle">
+          <span class="button-text">Market Pulse Dashboard</span>
+        </button>
+        
+        <!-- PREMIUM ACTIONS -->
+        <div class="section-header">
+          <span class="section-icon">💎</span>
+          <span class="section-title">Premium Features</span>
         </div>
         
-        <!-- EXPORTS -->
-        <div class="tx-section">
-          <div class="tx-section-title">
-            <svg class="tx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            Analysis & Export
-          </div>
-          
-          <div class="tx-export-grid">
-            <button class="tx-btn tx-btn-ai" id="tx-copy-ai">
-              ✨ Copy for AI Analysis
-            </button>
-            <button class="tx-btn tx-btn-plain" id="tx-copy-json">
-              { } Copy JSON
-            </button>
-            <button class="tx-btn tx-btn-plain" id="tx-copy-csv">
-               📊 Download CSV
-            </button>
-          </div>
+        <button class="premium-button" id="tx-copy-ai">
+          <span class="premium-button-icon">✨</span>
+          <span class="premium-button-text">AI Sentiment Analysis</span>
+        </button>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 24px 24px 24px;">
+          <button class="action-button" id="tx-copy-json" style="margin: 0; width: 100%;">
+            <span class="button-text">{ } JSON</span>
+          </button>
+          <button class="action-button" id="tx-copy-csv" style="margin: 0; width: 100%;">
+            <span class="button-text">📊 CSV</span>
+          </button>
         </div>
       </div>
       
-      <div class="tx-footer">
-        <div class="tx-credits">
-          Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="tx-link">Bhrigu Verma</a>
+      <div class="modal-footer">
+        <div class="footer-text">
+          Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="footer-link">Bhrigu Verma</a> • v2.0
         </div>
       </div>
     `;
 
     document.body.appendChild(sidebar);
 
-    // Floating trigger button
-    const trigger = document.createElement('button');
+    // Market Pulse FAB (Top Right)
+    const trigger = document.createElement('div');
     trigger.id = 'tx-trigger';
+    trigger.className = 'market-pulse-fab';
     trigger.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-        <polyline points="16 7 22 7 22 13"></polyline>
-      </svg>
+      <div class="fab-icon">📈</div>
+      <div class="fab-text">MARKET PULSE</div>
     `;
     trigger.addEventListener('click', () => this.toggle());
     document.body.appendChild(trigger);
@@ -506,19 +355,25 @@ class TraderXSidebar {
     // Close button
     document.getElementById('tx-close-btn').addEventListener('click', () => this.close());
 
-    // Trusted Toggle
-    document.getElementById('tx-trusted-toggle').addEventListener('change', (e) => {
-      this.trustedMode = e.target.checked;
-      localStorage.setItem('traderx_trusted_mode', this.trustedMode);
-      if (window.traderXToggleTrustedMode) {
-        window.traderXToggleTrustedMode(this.trustedMode);
-      }
-    });
+    // Trusted Toggle (Custom Switch)
+    const trustedToggle = document.getElementById('tx-trusted-toggle');
+    if (trustedToggle) {
+      trustedToggle.addEventListener('click', () => {
+        this.trustedMode = !this.trustedMode;
+        trustedToggle.classList.toggle('active', this.trustedMode);
+        localStorage.setItem('traderx_trusted_mode', this.trustedMode);
+
+        // Broadcast to other components if needed
+        if (window.traderXToggleTrustedMode) {
+          window.traderXToggleTrustedMode(this.trustedMode);
+        }
+      });
+    }
 
     // Advanced Search
     document.getElementById('tx-adv-search').addEventListener('click', () => {
-      if (window.traderXSearch) {
-        window.traderXSearch.createSearchUI();
+      if (window.TraderXAdvancedSearch) {
+        window.TraderXAdvancedSearch.createSearchUI();
         this.close();
       }
     });

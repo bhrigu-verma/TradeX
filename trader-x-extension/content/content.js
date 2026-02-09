@@ -266,9 +266,18 @@
     if (sentiment === 'bullish') { arrow = '↑'; colorClass = 'bullish'; }
     if (sentiment === 'bearish') { arrow = '↓'; colorClass = 'bearish'; }
 
-    tag.innerHTML = `<span class="traderx-ticker-tag-symbol ${colorClass}">$${ticker}</span><span class="traderx-ticker-tag-arrow ${colorClass}">${arrow}</span>`;
+    tag.innerHTML = `
+      <div class="traderx-ticker-pill ${colorClass}">
+        <span class="traderx-ticker-symbol">$${ticker}</span>
+        <span class="traderx-ticker-arrow">${arrow}</span>
+      </div>
+    `;
 
-    tag.onclick = () => setSearchTicker(ticker);
+    tag.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setSearchTicker(ticker);
+    };
 
     return tag;
   }

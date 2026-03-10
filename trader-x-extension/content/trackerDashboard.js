@@ -1,8 +1,9 @@
 // ============================================================================
-// TRADERX TRACKER DASHBOARD - FINTECH EDITION
+// TRADERX TRACKER DASHBOARD - FINTECH EDITION v2.0
 // ============================================================================
 // Professional grade UI with Glassmorphism and SVG icons
 // Real-time sentiment analysis
+// v2.0: LOW DATA badge, sparklines, visibility-based polling
 // ============================================================================
 
 class TrackerDashboard {
@@ -16,6 +17,7 @@ class TrackerDashboard {
     this.isVisible = true;
     this.isMinimized = false;
     this.element = null;
+    this.tabVisible = true; // For visibility-based polling
 
     // Card data state (enhanced)
     this.cardData = {};
@@ -26,10 +28,12 @@ class TrackerDashboard {
         lastUpdated: null,
         sampleSize: 0,
         isStale: false,
-        tweets: [], // Store actual tweets for click-through
+        tweets: [],
         bullishCount: 0,
         bearishCount: 0,
-        neutralCount: 0
+        neutralCount: 0,
+        confidence: 'low',
+        insufficientData: false
       };
     });
   }
@@ -405,6 +409,7 @@ class TrackerDashboard {
                style="left: ${barLeft}%; width: ${barWidth}%;">
           </div>
         </div>
+        <canvas id="td-sparkline-${ticker}" width="280" height="30" style="width:100%;height:30px;margin-bottom:8px;border-radius:4px;background:rgba(242,246,248,0.03);"></canvas>
         <div class="ticker-footer">
           <span class="tweet-count" id="td-vol-${ticker}">${data.sampleSize} tweets</span>
           <span class="last-update" id="td-time-${ticker}">${data.lastUpdated || '--:--'}</span>
@@ -416,7 +421,13 @@ class TrackerDashboard {
   getStatusConfig(status) {
     const statusUpper = (status || 'NEUTRAL').toUpperCase();
 
-    if (statusUpper.includes('BULLISH')) {
+    if (statusUpper.includes('LOW DATA') || statusUpper.includes('INSUFFICIENT')) {
+      return {
+        badgeClass: 'neutral',
+        label: 'LOW DATA',
+        icon: '⚠️'
+      };
+    } else if (statusUpper.includes('BULLISH')) {
       return {
         badgeClass: 'bullish',
         label: 'BULLISH',
@@ -901,7 +912,22 @@ class TrackerDashboard {
 
   startTracking() {
     this.refreshAll();
-    this.intervalId = setInterval(() => this.refreshAll(), this.updateInterval);
+    this.intervalId = setInterval(() => {
+      // Pause polling when tab is not visible
+      if (document.visibilityState === 'visible') {
+        this.refreshAll();
+      } else {
+        console.log('[TrackerDashboard] Tab hidden, skipping refresh');
+      }
+    }, this.updateInterval);
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[TrackerDashboard] Tab visible again, refreshing...');
+        this.refreshAll();
+      }
+    });
   }
 
   async refreshAll() {
@@ -920,28 +946,33 @@ class TrackerDashboard {
   async updateTicker(ticker) {
     try {
       const fetcher = window.TraderXFetcher;
+      const engine = window.TraderXAnalysisEngine;
 
-      // Fetch MORE tweets (request 100 instead of default 20)
-      const tweets = fetcher ? await fetcher.fetchTickerTweets(ticker, {
-        maxTweets: 100,  // Request 100 tweets
+      // Fetch tweets — v4.0 returns {tweets, confidence, insufficientData}
+      const fetchResult = fetcher ? await fetcher.fetchTickerTweets(ticker, {
+        maxTweets: 100,
         includeRetweets: false,
         includeReplies: false
-      }) : [];
+      }) : { tweets: [], confidence: 'low', insufficientData: true };
 
-      const engine = window.TraderXAnalysisEngine;
+      // Handle both old array format and new result object
+      const tweets = Array.isArray(fetchResult) ? fetchResult : (fetchResult.tweets || []);
+      const confidence = fetchResult.confidence || 'low';
+      const insufficientData = fetchResult.insufficientData || false;
+
       let analysis;
 
       if (engine && tweets.length > 0) {
-        analysis = await engine.analyzeTicker(tweets);
+        analysis = await engine.analyzeTicker(fetchResult, ticker);
 
         // Calculate detailed breakdown
         const bullishCount = tweets.filter(t => {
-          const score = engine.analyzeText(t.text);
+          const score = engine.analyzeText(typeof t === 'string' ? t : (t.text || ''));
           return score > 0.2;
         }).length;
 
         const bearishCount = tweets.filter(t => {
-          const score = engine.analyzeText(t.text);
+          const score = engine.analyzeText(typeof t === 'string' ? t : (t.text || ''));
           return score < -0.2;
         }).length;
 
@@ -952,16 +983,19 @@ class TrackerDashboard {
           sentiment: analysis.sentiment,
           lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           sampleSize: analysis.sampleSize,
-          tweets: tweets, // Store for click-through
+          tweets: tweets,
           bullishCount,
           bearishCount,
           neutralCount,
           volumeSpike: analysis.volumeSpike || false,
-          influencerCount: analysis.influencerCount || 0
+          spikeIntensity: analysis.spikeIntensity || 0,
+          influencerCount: analysis.influencerCount || 0,
+          confidence,
+          insufficientData
         };
       } else {
         this.cardData[ticker] = {
-          status: 'NEUTRAL',
+          status: insufficientData ? 'LOW DATA' : 'NEUTRAL',
           sentiment: 0,
           lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           sampleSize: tweets.length,
@@ -970,11 +1004,15 @@ class TrackerDashboard {
           bearishCount: 0,
           neutralCount: tweets.length,
           volumeSpike: false,
-          influencerCount: 0
+          spikeIntensity: 0,
+          influencerCount: 0,
+          confidence,
+          insufficientData
         };
       }
 
       this.updateCardUI(ticker, this.cardData[ticker]);
+      this.drawSparkline(ticker);
 
       // Also fetch price data
       this.updatePriceUI(ticker);
@@ -1013,6 +1051,105 @@ class TrackerDashboard {
     this.isVisible = !this.isVisible;
     if (this.isVisible) this.element.classList.remove('hidden');
     else this.element.classList.add('hidden');
+  }
+
+  // ========================================================================
+  // SPARKLINE CHART (Sentiment History)
+  // ========================================================================
+
+  drawSparkline(ticker) {
+    const canvas = document.getElementById(`td-sparkline-${ticker}`);
+    if (!canvas) return;
+
+    const engine = window.TraderXAnalysisEngine;
+    if (!engine) return;
+
+    const history = engine.getSentimentHistory(ticker);
+    if (!history || history.length < 2) {
+      // Not enough data — draw flat line
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(242, 246, 248, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height / 2);
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    const padding = 2;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw zero line
+    ctx.strokeStyle = 'rgba(242, 246, 248, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw sentiment line
+    const points = history.slice(-50); // Last 50 data points
+    const stepX = (w - padding * 2) / (points.length - 1);
+
+    // Map sentiment (-1 to 1) to canvas Y (h-padding to padding)
+    const mapY = (val) => {
+      const clamped = Math.max(-1, Math.min(1, val));
+      return h - padding - ((clamped + 1) / 2) * (h - padding * 2);
+    };
+
+    // Determine line color based on latest sentiment
+    const latestSentiment = points[points.length - 1].sentiment;
+    let lineColor, fillColor;
+    if (latestSentiment > 0.1) {
+      lineColor = '#00A36C';
+      fillColor = 'rgba(0, 163, 108, 0.15)';
+    } else if (latestSentiment < -0.1) {
+      lineColor = '#EF4444';
+      fillColor = 'rgba(239, 68, 68, 0.15)';
+    } else {
+      lineColor = '#C9A66B';
+      fillColor = 'rgba(201, 166, 107, 0.1)';
+    }
+
+    // Draw fill area
+    ctx.fillStyle = fillColor;
+    ctx.beginPath();
+    ctx.moveTo(padding, h / 2);
+    points.forEach((p, i) => {
+      ctx.lineTo(padding + i * stepX, mapY(p.sentiment));
+    });
+    ctx.lineTo(padding + (points.length - 1) * stepX, h / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw line
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const x = padding + i * stepX;
+      const y = mapY(p.sentiment);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw latest point
+    const lastX = padding + (points.length - 1) * stepX;
+    const lastY = mapY(latestSentiment);
+    ctx.fillStyle = lineColor;
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 

@@ -306,6 +306,14 @@ class TraderXSidebar {
         <button class="action-button" id="tx-tracker-toggle">
           <span class="button-text">Market Pulse Dashboard</span>
         </button>
+
+        <button class="action-button" id="tx-portfolio-open">
+          <span class="button-text">💼 Portfolio Tracker</span>
+        </button>
+
+        <button class="action-button" id="tx-heatmap-open">
+          <span class="button-text">🗺️ Sector Heatmap</span>
+        </button>
         
         <!-- PREMIUM ACTIONS -->
         <div class="section-header">
@@ -330,7 +338,7 @@ class TraderXSidebar {
       
       <div class="modal-footer">
         <div class="footer-text">
-          Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="footer-link">Bhrigu Verma</a> • v2.0
+          Engineered by <a href="https://github.com/bhrigu-verma" target="_blank" class="footer-link">Bhrigu Verma</a> • v3.0
         </div>
       </div>
     `;
@@ -390,6 +398,22 @@ class TraderXSidebar {
     document.getElementById('tx-tracker-toggle').addEventListener('click', () => {
       if (window.TraderXTrackerDashboard) {
         window.TraderXTrackerDashboard.toggle();
+      }
+    });
+
+    // Portfolio Tracker
+    document.getElementById('tx-portfolio-open').addEventListener('click', () => {
+      if (window.TraderXPortfolio) {
+        window.TraderXPortfolio.show();
+        this.close();
+      }
+    });
+
+    // Sector Heatmap
+    document.getElementById('tx-heatmap-open').addEventListener('click', () => {
+      if (window.TraderXSectorHeatmap) {
+        window.TraderXSectorHeatmap.show();
+        this.close();
       }
     });
 

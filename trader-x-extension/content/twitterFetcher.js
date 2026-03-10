@@ -1,20 +1,23 @@
 // ============================================================================
-// TRADERX TWITTER FETCHER v3.0 - Real Tweet Fetching
+// TRADERX TWITTER FETCHER v4.0 - Real Tweet Fetching (No Synthetic Data)
 // ============================================================================
 // Fetches tweets using multiple strategies:
 // 1. Scan current page DOM
 // 2. Inject fetch into Twitter's search API
 // 3. Use background script for cross-origin requests
-// 4. Demo data as last resort
+// REMOVED: Strategy 4 (synthetic tweet generation) — was poisoning sentiment
 // ============================================================================
 
 class TwitterFetcher {
     constructor() {
         this.cache = new Map();
-        this.cacheExpiry = 25000; // 25 seconds cache (slightly less than update interval)
+        this.cacheExpiry = 25000; // 25 seconds cache
         this.lastFetch = new Map();
         this.rateLimitDelay = 2000; // 2 seconds between requests
-        this.maxTweetsPerTicker = 50; // Target 50 tweets per ticker
+        this.maxTweetsPerTicker = 50;
+
+        // For deduplication
+        this.JACCARD_THRESHOLD = 0.85;
     }
 
     // ========================================================================
@@ -29,13 +32,13 @@ class TwitterFetcher {
         const cached = this.cache.get(cacheKey);
         if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
             console.log(`[Fetcher] Cache hit for $${normalizedTicker} (${cached.tweets.length} tweets)`);
-            return cached.tweets;
+            return cached;
         }
 
         // Rate limiting
         const lastFetchTime = this.lastFetch.get(cacheKey) || 0;
         if (Date.now() - lastFetchTime < this.rateLimitDelay && cached) {
-            return cached.tweets;
+            return cached;
         }
 
         this.lastFetch.set(cacheKey, Date.now());
@@ -52,9 +55,8 @@ class TwitterFetcher {
             // Strategy 2: If on search page, get all visible tweets
             if (window.location.pathname.includes('/search')) {
                 const searchTweets = this.fetchFromSearchPage(normalizedTicker);
-                // Add unique tweets only
                 searchTweets.forEach(t => {
-                    if (!allTweets.some(existing => existing.text === t.text)) {
+                    if (!this.isDuplicate(t, allTweets)) {
                         allTweets.push(t);
                     }
                 });
@@ -65,36 +67,135 @@ class TwitterFetcher {
             if (allTweets.length < 20) {
                 const fetchedTweets = await this.fetchFromTwitterSearch(normalizedTicker);
                 fetchedTweets.forEach(t => {
-                    if (!allTweets.some(existing => existing.text === t.text)) {
+                    if (!this.isDuplicate(t, allTweets)) {
                         allTweets.push(t);
                     }
                 });
                 console.log(`[Fetcher] API: ${fetchedTweets.length} tweets`);
             }
 
-            // Strategy 4: If still not enough, use generated tweets based on real patterns
-            if (allTweets.length < 10) {
-                const generatedTweets = this.generateRealisticTweets(normalizedTicker);
-                allTweets.push(...generatedTweets);
-                console.log(`[Fetcher] Generated: ${generatedTweets.length} tweets`);
-            }
+            // NO Strategy 4 — we never generate fake tweets
 
         } catch (error) {
             console.error(`[Fetcher] Error:`, error);
-            if (allTweets.length === 0) {
-                allTweets = this.generateRealisticTweets(normalizedTicker);
+            // On error, return whatever we have — never generate fake data
+        }
+
+        // Deduplicate with fuzzy matching
+        allTweets = this.deduplicateFuzzy(allTweets);
+
+        // Limit and build result
+        const finalTweets = allTweets.slice(0, this.maxTweetsPerTicker);
+
+        // Determine data confidence level
+        const confidence = this.computeConfidence(finalTweets);
+
+        const result = {
+            tweets: finalTweets,
+            confidence,                             // 'high' | 'medium' | 'low'
+            insufficientData: finalTweets.length < 5,
+            sampleSize: finalTweets.length,
+            timestamp: Date.now()
+        };
+
+        this.cache.set(cacheKey, result);
+
+        // --- NEW: Sync to Local Backend Engine ---
+        if (finalTweets.length > 0) {
+            this.syncWithBackend(normalizedTicker, finalTweets);
+        }
+
+        console.log(`[Fetcher] Total for $${normalizedTicker}: ${finalTweets.length} tweets (confidence: ${confidence})`);
+        return result;
+    }
+
+    // ========================================================================
+    // BACKEND SYNC (To Local Node Server)
+    // ========================================================================
+    async syncWithBackend(ticker, tweets) {
+        try {
+            // Check settings or default to true
+            const response = await fetch('http://localhost:3001/api/sync/tweets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': 'traderx_dev_key_here' // We could pull this from extension storage, hardcoded for now
+                },
+                body: JSON.stringify({ ticker, tweets })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`[Sync] Successfully synced ${tweets.length} tweets for $${ticker} to backend. Alerts triggered: ${data.alertsTriggered}`);
+            }
+        } catch (e) {
+            console.warn(`[Sync] Failed to sync to local backend: server might be offline.`);
+        }
+    }
+
+    // ========================================================================
+    // CONFIDENCE SCORING
+    // ========================================================================
+
+    computeConfidence(tweets) {
+        if (tweets.length >= 25) return 'high';
+        if (tweets.length >= 10) return 'medium';
+        return 'low';
+    }
+
+    // ========================================================================
+    // DEDUPLICATION (Tweet ID + Jaccard Similarity)
+    // ========================================================================
+
+    isDuplicate(newTweet, existingTweets) {
+        const newText = (newTweet.text || '').trim();
+        if (!newText) return true;
+
+        // Check exact match first (fast path)
+        for (const existing of existingTweets) {
+            if (existing.text === newText) return true;
+
+            // Check tweet ID if available
+            if (newTweet.tweetId && existing.tweetId && newTweet.tweetId === existing.tweetId) {
+                return true;
             }
         }
 
-        // Limit and cache
-        const finalTweets = allTweets.slice(0, this.maxTweetsPerTicker);
-        this.cache.set(cacheKey, {
-            tweets: finalTweets,
-            timestamp: Date.now()
-        });
+        // Fuzzy match via Jaccard similarity
+        for (const existing of existingTweets) {
+            if (this.jaccardSimilarity(newText, existing.text || '') > this.JACCARD_THRESHOLD) {
+                return true;
+            }
+        }
 
-        console.log(`[Fetcher] Total for $${normalizedTicker}: ${finalTweets.length} tweets`);
-        return finalTweets;
+        return false;
+    }
+
+    deduplicateFuzzy(tweets) {
+        const unique = [];
+        for (const tweet of tweets) {
+            if (!this.isDuplicate(tweet, unique)) {
+                unique.push(tweet);
+            }
+        }
+        return unique;
+    }
+
+    jaccardSimilarity(a, b) {
+        if (!a || !b) return 0;
+
+        const setA = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+        const setB = new Set(b.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+
+        if (setA.size === 0 || setB.size === 0) return 0;
+
+        let intersection = 0;
+        for (const word of setA) {
+            if (setB.has(word)) intersection++;
+        }
+
+        const union = new Set([...setA, ...setB]).size;
+        return union > 0 ? intersection / union : 0;
     }
 
     // ========================================================================
@@ -120,11 +221,13 @@ class TwitterFetcher {
                 const author = this.extractAuthor(element);
                 const timestamp = this.extractTimestamp(element);
                 const metrics = this.extractMetrics(element);
+                const tweetId = this.extractTweetId(element);
 
                 tweets.push({
                     text,
                     author,
                     timestamp,
+                    tweetId,
                     ...metrics,
                     source: 'dom'
                 });
@@ -150,11 +253,13 @@ class TwitterFetcher {
             const author = this.extractAuthor(element);
             const timestamp = this.extractTimestamp(element);
             const metrics = this.extractMetrics(element);
+            const tweetId = this.extractTweetId(element);
 
             tweets.push({
                 text,
                 author,
                 timestamp,
+                tweetId,
                 ...metrics,
                 source: 'search'
             });
@@ -192,7 +297,6 @@ class TwitterFetcher {
             const html = await response.text();
 
             // Parse tweets from HTML
-            // Twitter returns JSON data embedded in script tags
             const dataMatches = html.match(/"full_text":"([^"]+)"/g);
 
             if (dataMatches) {
@@ -251,6 +355,23 @@ class TwitterFetcher {
         return null;
     }
 
+    extractTweetId(element) {
+        try {
+            // Try data-tweet-id attribute first
+            const id = element.getAttribute('data-tweet-id');
+            if (id) return id;
+
+            // Try to extract from status link
+            const statusLink = element.querySelector('a[href*="/status/"]');
+            if (statusLink) {
+                const href = statusLink.getAttribute('href');
+                const match = href.match(/\/status\/(\d+)/);
+                if (match) return match[1];
+            }
+        } catch (e) { }
+        return null;
+    }
+
     extractMetrics(element) {
         const metrics = { likes: 0, retweets: 0, replies: 0 };
 
@@ -270,89 +391,33 @@ class TwitterFetcher {
     }
 
     // ========================================================================
-    // STRATEGY 4: Generate Realistic Tweets (with variety)
-    // ========================================================================
-
-    generateRealisticTweets(ticker) {
-        const templates = this.getTweetTemplates(ticker);
-        const sentiments = ['bullish', 'bearish', 'neutral'];
-        const tweets = [];
-
-        // Generate 20 varied tweets
-        for (let i = 0; i < 20; i++) {
-            const sentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
-            const template = templates[sentiment][Math.floor(Math.random() * templates[sentiment].length)];
-
-            // Add some randomization
-            const variations = [
-                '', ' 👀', ' 🎯', ' 💪', ' 🔥', ' 📊', '!', '!!', '...', ' 💰'
-            ];
-            const variation = variations[Math.floor(Math.random() * variations.length)];
-
-            tweets.push({
-                text: template.replace(/\{TICKER\}/g, ticker) + variation,
-                author: `trader_${Math.floor(Math.random() * 10000)}`,
-                sentiment,
-                source: 'generated'
-            });
-        }
-
-        // Shuffle for randomness
-        return tweets.sort(() => Math.random() - 0.5);
-    }
-
-    getTweetTemplates(ticker) {
-        return {
-            bullish: [
-                `$${ticker} looking incredibly bullish here, breakout imminent 🚀`,
-                `Loading up on ${ticker}, this is the bottom folks`,
-                `$${ticker} higher lows forming, bulls in control`,
-                `Just bought more ${ticker}, risk/reward is amazing`,
-                `${ticker} about to send it, don't miss this rally`,
-                `$${ticker} accumulation zone, smart money buying`,
-                `Bullish divergence on ${ticker}, expecting a pump`,
-                `${ticker} golden cross forming, very bullish setup`,
-                `$${ticker} breakout confirmed, next target up 20%`,
-                `This ${ticker} dip is a gift, loading the truck`,
-                `${ticker} showing strength, holding support perfectly`,
-                `$${ticker} calls are printing, momentum is building`
-            ],
-            bearish: [
-                `$${ticker} looking weak, might test lower support`,
-                `${ticker} rejection at resistance, watching for breakdown`,
-                `$${ticker} bearish divergence forming, be careful`,
-                `Took profits on ${ticker}, expecting a pullback`,
-                `${ticker} overbought, due for a correction`,
-                `$${ticker} death cross warning, bears taking control`,
-                `${ticker} losing momentum, taking some off the table`,
-                `$${ticker} distribution pattern, smart money selling`,
-                `Hedging my ${ticker} position with puts`,
-                `${ticker} failing to break resistance again`
-            ],
-            neutral: [
-                `$${ticker} consolidating, waiting for direction`,
-                `${ticker} in a range, need clarity before entry`,
-                `$${ticker} mixed signals, staying on sidelines`,
-                `Watching ${ticker} closely, no position yet`,
-                `${ticker} choppy action, patience needed`,
-                `$${ticker} at inflection point, could go either way`,
-                `${ticker} volume picking up, something brewing`,
-                `Monitoring ${ticker}, waiting for a clear break`
-            ]
-        };
-    }
-
-    // ========================================================================
     // BATCH FETCH
     // ========================================================================
 
     async fetchMultipleTickers(tickers) {
         const results = {};
 
-        for (const ticker of tickers) {
-            results[ticker] = await this.fetchTickerTweets(ticker);
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
+        // Use Promise.allSettled for true parallel fetch
+        const promises = tickers.map(async ticker => {
+            const result = await this.fetchTickerTweets(ticker);
+            return { ticker, result };
+        });
+
+        const settled = await Promise.allSettled(promises);
+
+        settled.forEach(outcome => {
+            if (outcome.status === 'fulfilled') {
+                results[outcome.value.ticker] = outcome.value.result;
+            } else {
+                results[outcome.value?.ticker || 'unknown'] = {
+                    tweets: [],
+                    confidence: 'low',
+                    insufficientData: true,
+                    sampleSize: 0,
+                    timestamp: Date.now()
+                };
+            }
+        });
 
         return results;
     }
@@ -374,6 +439,7 @@ class TwitterFetcher {
         this.cache.forEach((value, key) => {
             status[key] = {
                 count: value.tweets.length,
+                confidence: value.confidence,
                 age: Math.round((Date.now() - value.timestamp) / 1000) + 's'
             };
         });
@@ -384,4 +450,4 @@ class TwitterFetcher {
 // Singleton instance
 window.TraderXFetcher = window.TraderXFetcher || new TwitterFetcher();
 
-console.log('[TraderX] Twitter Fetcher v3.0 initialized');
+console.log('[TraderX] Twitter Fetcher v4.0 initialized (no synthetic data)');

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "TraderX Pro",
-  "version": "2.0.0",
-  "description": "Professional trading assistant: ML sentiment analysis, real-time prices, influencer weighting, and noise filtering",
+  "version": "3.0.0",
+  "description": "Professional trading assistant: ML sentiment analysis, real-time prices, influencer weighting, combo alerts, portfolio tracking, and noise filtering",
   "permissions": [
     "storage",
     "notifications",
@@ -29,9 +29,9 @@
   },
   "options_page": "settings/settings.html",
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
   },
   "content_scripts": [
     {
@@ -45,6 +45,9 @@
         "content/priceFetcher.js",
         "content/analysisEngine.js",
         "content/twitterFetcher.js",
+        "content/comboAlerts.js",
+        "content/portfolioTracker.js",
+        "content/sectorHeatmap.js",
         "content/trackerDashboard.js",
         "content/tweetProcessor.js",
         "content/accountDirectory.js",
@@ -58,16 +61,11 @@
       "run_at": "document_end"
     }
   ],
-  "options_page": "settings/settings.html",
-  "icons": {
-    "16": "assets/icons/icon-16.png",
-    "48": "assets/icons/icon-48.png",
-    "128": "assets/icons/icon-128.png"
-  },
   "web_accessible_resources": [
     {
       "resources": [
-        "accounts.json"
+        "accounts.json",
+        "content/finbert-worker.js"
       ],
       "matches": [
         "https://x.com/*",

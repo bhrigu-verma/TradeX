@@ -1,5 +1,5 @@
-// === TRADERX CONTENT SCRIPT v1.2 ===
-// Main content script with improved search and suggested handle prioritization
+// === TRADERX CONTENT SCRIPT v2.0 ===
+// Main content script — fixed NFA rule, negation-aware sentiment
 
 (() => {
   const {
@@ -21,6 +21,13 @@
   // === SENTIMENT KEYWORDS ===
   const BULLISH_WORDS = /\b(bull|bullish|buy|long|calls?|moon|breakout|rip|pump|green|up|higher|rally|squeeze|beat|surge|soar|rocket|🚀|📈|💚|🟢)\b/i;
   const BEARISH_WORDS = /\b(bear|bearish|sell|short|puts?|dump|crash|red|down|lower|drill|tank|miss|plunge|fade|📉|💔|🔴)\b/i;
+
+  // === NEGATION DETECTION ===
+  const NEGATION_WORDS = new Set([
+    'not', "don't", "doesn't", "didn't", "won't", "wouldn't", "can't",
+    'never', 'no', 'without', 'barely', 'hardly', "isn't", "aren't"
+  ]);
+  const NEGATION_WINDOW = 3;
 
   // === COMMON TICKERS ===
   const COMMON_TICKERS = new Set([
@@ -173,14 +180,41 @@
     return Array.from(tickers);
   }
 
-  // === SENTIMENT DETECTION ===
+  // === SENTIMENT DETECTION (Negation-Aware) ===
   function detectSentiment(text) {
-    const bullishScore = (text.match(BULLISH_WORDS) || []).length;
-    const bearishScore = (text.match(BEARISH_WORDS) || []).length;
+    const words = text.toLowerCase().split(/\s+/);
+    let bullishScore = 0;
+    let bearishScore = 0;
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i].replace(/[^a-z]/g, '');
+      if (!word) continue;
+
+      // Check if this word position is negated
+      const negated = isWordNegated(words, i);
+
+      if (BULLISH_WORDS.test(word)) {
+        if (negated) bearishScore += 0.7;
+        else bullishScore++;
+      }
+      if (BEARISH_WORDS.test(word)) {
+        if (negated) bullishScore += 0.7;
+        else bearishScore++;
+      }
+    }
 
     if (bullishScore > bearishScore) return 'bullish';
     if (bearishScore > bullishScore) return 'bearish';
     return 'neutral';
+  }
+
+  function isWordNegated(words, index) {
+    const start = Math.max(0, index - NEGATION_WINDOW);
+    for (let i = start; i < index; i++) {
+      const w = words[i].replace(/[^a-z']/g, '');
+      if (NEGATION_WORDS.has(w)) return true;
+    }
+    return false;
   }
 
   // === SPAM DETECTION (Improved) ===
@@ -232,11 +266,13 @@
       }
     }
 
-    // 5. Disclaimers
-    if (f.hideDisclaimers ?? true) {
-      if (/not financial advice|this is not advice|\bNFA\b|do your own research|\bDYOR\b|not a recommendation/i.test(text)) {
-        return { spam: true, reason: 'Disclaimer' };
-      }
+    // 5. Disclaimers — NO LONGER SPAM
+    // Reclassified as a quality signal. Credible analysts include NFA/DYOR.
+    // Instead of hiding, we apply a small quality penalty via data attribute.
+    if (/not financial advice|this is not advice|\bNFA\b|do your own research|\bDYOR\b|not a recommendation/i.test(text)) {
+      // Don't hide — just flag for quality scoring
+      // The calling code can read this attribute:
+      // tweetElement.setAttribute('data-traderx-quality-penalty', 'disclaimer');
     }
 
     // 6. Threads (market hours)

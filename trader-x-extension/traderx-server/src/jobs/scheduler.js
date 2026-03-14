@@ -10,6 +10,7 @@ const { analyzeTweets } = require('../services/sentiment.service');
 const twitterService = require('../services/twitter.service');
 const priceService = require('../services/price.service');
 const alertService = require('../services/alert.service');
+const trackedPoller = require('./tracked-poller');
 const logger = require('../config/logger');
 
 let telegramBot = null; // Injected after bot starts
@@ -18,7 +19,9 @@ let sendAlertFn = null; // Injected after bot starts
 function injectBot(bot, sendFn) {
     telegramBot = bot;
     sendAlertFn = sendFn;
-    logger.info('[Scheduler] Bot injected into scheduler');
+    // Also inject bot into the X account poller
+    trackedPoller.injectBot(bot);
+    logger.info('[Scheduler] Bot injected into scheduler + poller');
 }
 
 // ============================================================================
@@ -108,84 +111,15 @@ async function runTickerAnalysis() {
 }
 
 // ============================================================================
-// JOB 2: Check tracked account tweets (every 2 minutes)
+// JOB 2: Poll tracked X accounts for new tweets (every 3 minutes)
+// — Now powered by the dedicated X Feed poller with Nitter/Syndication
 // ============================================================================
 
 async function checkTrackedAccounts() {
-    const db = getDb();
-
     try {
-        // Get all users with tracked accounts
-        const users = db.prepare(`
-      SELECT DISTINCT u.id, u.telegram_id FROM users u
-      INNER JOIN tracked_accounts ta ON ta.user_id = u.id
-    `).all();
-
-        for (const user of users) {
-            try {
-                const accounts = db.prepare('SELECT handle FROM tracked_accounts WHERE user_id = ?').all(user.id).map(r => r.handle);
-                const watchlist = db.prepare('SELECT ticker FROM watchlist WHERE user_id = ?').all(user.id).map(r => r.ticker);
-
-                if (accounts.length === 0 || watchlist.length === 0) continue;
-
-                const tweets = await twitterService.fetchFromTrackedAccounts(accounts, watchlist);
-
-                if (tweets.length > 0) {
-                    // Check if any tweet matches watchlist tickers and is recent (< 3 min)
-                    const recentCutoff = Date.now() - 3 * 60 * 1000;
-
-                    for (const tweet of tweets) {
-                        const tweetTime = tweet.timestamp ? new Date(tweet.timestamp).getTime() : 0;
-                        if (tweetTime < recentCutoff) continue;
-
-                        // Analyze this tweet
-                        const analysis = analyzeTweets([tweet], new Map(), []);
-
-                        // Send Telegram notification about the influencer tweet
-                        if (telegramBot && user.telegram_id && sendAlertFn) {
-                            const sentEmoji = analysis.sentiment > 0.2 ? '🟢' : analysis.sentiment < -0.2 ? '🔴' : '⚪';
-                            const notification = {
-                                ticker: watchlist[0], // Best guess
-                                type: 'tracked_account_tweet',
-                                name: 'Tracked Account Tweet',
-                                analysis,
-                                priceData: null,
-                                triggerDetails: { handle: tweet.author, tweet: tweet.text },
-                                historyId: null,
-                                userId: user.id
-                            };
-
-                            try {
-                                const formattedMsg = `${sentEmoji} <b>@${tweet.author}</b> tweeted:\n\n` +
-                                    `<i>"${tweet.text.substring(0, 280)}"</i>\n\n` +
-                                    `❤️ ${tweet.likes} | 🔄 ${tweet.retweets}\n` +
-                                    `<b>Sentiment:</b> ${analysis.status}\n\n` +
-                                    `<a href="https://x.com/${tweet.author}">View on X →</a>`;
-
-                                const userSettings = JSON.parse(user.settings || '{}');
-                                if (!userSettings.disableAccountAlerts) {
-                                    // Check mute status
-                                    const fullUser = db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
-                                    const now = Math.floor(Date.now() / 1000);
-                                    if (!fullUser?.muted_until || now > fullUser.muted_until) {
-                                        await telegramBot.telegram.sendMessage(user.telegram_id, formattedMsg, { parse_mode: 'HTML' });
-                                        logger.info(`[Scheduler] Account tweet alert sent: @${tweet.author} → user ${user.telegram_id}`);
-                                    }
-                                }
-                            } catch (sendErr) {
-                                logger.warn(`[Scheduler] Failed to send account alert: ${sendErr.message}`);
-                            }
-                        }
-                    }
-                }
-
-                await sleep(1000);
-            } catch (userErr) {
-                logger.error(`[Scheduler] Account check error for user ${user.id}: ${userErr.message}`);
-            }
-        }
+        await trackedPoller.pollTrackedAccounts();
     } catch (e) {
-        logger.error(`[Scheduler] checkTrackedAccounts failed: ${e.message}`);
+        logger.error(`[Scheduler] X account polling failed: ${e.message}`);
     }
 }
 
@@ -249,7 +183,49 @@ async function runBacktestScoring() {
             await sleep(300);
         }
 
-        logger.debug(`[Scheduler] Backtest scoring: updated ${pending1h.length} 1h results`);
+        // Check 4h results
+        const pending4h = db.prepare(`
+      SELECT * FROM backtest_results
+      WHERE price_after_4h IS NULL AND price_after_1h IS NOT NULL AND signal_time <= ? AND price_at_signal IS NOT NULL
+      LIMIT 20
+    `).all(fourHoursAgo);
+
+        for (const result of pending4h) {
+            const priceData = await priceService.getPrice(result.ticker);
+            if (priceData?.price) {
+                const correct = result.signal_sentiment > 0
+                    ? priceData.price > result.price_at_signal
+                    : priceData.price < result.price_at_signal;
+
+                db.prepare(`
+          UPDATE backtest_results SET price_after_4h = ?, correct_4h = ? WHERE id = ?
+        `).run(priceData.price, correct ? 1 : 0, result.id);
+            }
+            await sleep(300);
+        }
+
+        // Check 24h results
+        const pending24h = db.prepare(`
+      SELECT * FROM backtest_results
+      WHERE price_after_24h IS NULL AND price_after_4h IS NOT NULL AND signal_time <= ? AND price_at_signal IS NOT NULL
+      LIMIT 20
+    `).all(oneDayAgo);
+
+        for (const result of pending24h) {
+            const priceData = await priceService.getPrice(result.ticker);
+            if (priceData?.price) {
+                const correct = result.signal_sentiment > 0
+                    ? priceData.price > result.price_at_signal
+                    : priceData.price < result.price_at_signal;
+
+                db.prepare(`
+          UPDATE backtest_results SET price_after_24h = ?, correct_24h = ? WHERE id = ?
+        `).run(priceData.price, correct ? 1 : 0, result.id);
+            }
+            await sleep(300);
+        }
+
+        logger.debug(`[Scheduler] Backtest scoring: updated ${pending1h.length} 1h, ${pending4h.length} 4h, ${pending24h.length} 24h results`);
     } catch (e) {
         logger.error(`[Scheduler] Backtest scoring failed: ${e.message}`);
     }
@@ -321,8 +297,11 @@ function startScheduler() {
     // Ticker analysis: every 60 seconds
     cron.schedule('* * * * *', runTickerAnalysis);
 
-    // Tracked accounts: every 2 minutes
-    cron.schedule('*/2 * * * *', checkTrackedAccounts);
+    // Tracked accounts: every 3 minutes via X Feed Poller
+    cron.schedule('*/3 * * * *', checkTrackedAccounts);
+
+    // Run first X poll shortly after startup
+    setTimeout(checkTrackedAccounts, 10000);
 
     // Price cache: every 30 seconds
     cron.schedule('*/30 * * * * *', refreshPriceCache, { scheduled: true });

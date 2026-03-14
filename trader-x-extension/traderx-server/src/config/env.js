@@ -39,6 +39,20 @@ const config = {
 
     // Discord
     DISCORD_BOT_TOKEN: process.env.DISCORD_BOT_TOKEN || '',
+    DISCORD_GUILD_ID: process.env.DISCORD_GUILD_ID || '',
+    DISCORD_ALERT_CHANNEL_ID: process.env.DISCORD_ALERT_CHANNEL_ID || '',
+
+    // Stripe
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+    STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+    STRIPE_PRO_MONTHLY_PRICE_ID: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || '',
+    STRIPE_PRO_YEARLY_PRICE_ID: process.env.STRIPE_PRO_YEARLY_PRICE_ID || '',
+    STRIPE_ENTERPRISE_MONTHLY_PRICE_ID: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || '',
+    STRIPE_ENTERPRISE_YEARLY_PRICE_ID: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID || '',
+
+    // App
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
 
     // Feature flags
     features: {
@@ -46,6 +60,7 @@ const config = {
         openAiEnabled: !!(process.env.OPENAI_API_KEY),
         discordEnabled: !!(process.env.DISCORD_BOT_TOKEN),
         redisEnabled: process.env.USE_REDIS === 'true',
+        stripeEnabled: !!(process.env.STRIPE_SECRET_KEY),
     }
 };
 

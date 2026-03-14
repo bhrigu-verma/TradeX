@@ -15,6 +15,15 @@ const priceService = require('../services/price.service');
 const alertService = require('../services/alert.service');
 
 // ============================================================================
+// MARKDOWN HELPER
+// ============================================================================
+function escapeMarkdownV2(text) {
+    if (!text) return '';
+    // Escape all special characters required by Telegram MarkdownV2
+    return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+
+// ============================================================================
 // USER HELPERS
 // ============================================================================
 
@@ -376,7 +385,7 @@ function createBot() {
     });
 
     // ─────────────────────────────────────
-    // /sentiment — Get sentiment for a ticker
+    // /sentiment — Get FULL intelligence report for a ticker
     // ─────────────────────────────────────
     bot.command('sentiment', async (ctx) => {
         try {
@@ -392,36 +401,40 @@ function createBot() {
             }
 
             const ticker = args[0].toUpperCase().replace('$', '');
-            const msg = await ctx.reply(`⏳ Fetching analysis for $${ticker}...`);
+            const msg = await ctx.reply(`⏳ Gathering intelligence for $${ticker} from all sources...`);
 
-            // Fetch tweets & analyze
-            const fetchResult = await twitterService.fetchTickerTweets(ticker);
-            const analysis = analyzeTweets(fetchResult.tweets || [], new Map(), []);
+            // Use the new multi-source intelligence service
+            const { getFormattedIntelligence } = require('../services/intelligence.service');
+            const intel = await getFormattedIntelligence(ticker, { topN: 5 });
 
-            // Fetch price
-            const priceData = await priceService.getPrice(ticker);
-
-            // Save snapshot
-            const db = getDb();
-            db.prepare(`
-        INSERT INTO sentiment_snapshots (ticker, sentiment, status, sample_size, confidence, bullish_count, bearish_count, neutral_count, volume_spike, spike_intensity)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(ticker, analysis.sentiment, analysis.status, analysis.sampleSize, analysis.confidence,
-                analysis.breakdown?.bullish || 0, analysis.breakdown?.bearish || 0, analysis.breakdown?.neutral || 0,
-                analysis.volumeSpike ? 1 : 0, analysis.spikeIntensity || 0);
-
-            const message = formatSentimentSnapshot(ticker, analysis, priceData);
-
-            // Delete loading message and send result
+            // Delete loading message and send rich result
             try { await ctx.telegram.deleteMessage(ctx.chat.id, msg.message_id); } catch { }
 
-            await ctx.replyWithHTML(message, Markup.inlineKeyboard([
-                [Markup.button.url(`🐦 Search on X`, `https://x.com/search?q=%24${ticker}&f=live`),
-                Markup.button.callback('🔄 Refresh', `refresh_${ticker}`)]
-            ]));
+            await ctx.replyWithMarkdownV2(
+                escapeMarkdownV2(intel.telegramMessage),
+                {
+                    ...Markup.inlineKeyboard([
+                        [Markup.button.url(`🐦 Search on X`, `https://x.com/search?q=%24${ticker}&f=live`),
+                        Markup.button.callback('🔄 Refresh', `refresh_${ticker}`)]
+                    ]),
+                    disable_web_page_preview: true
+                }
+            );
         } catch (e) {
             logger.error(`[Bot] /sentiment error: ${e.message}`);
-            ctx.reply('❌ Error fetching sentiment. Please try again.');
+            ctx.reply('❌ Error fetching intelligence. Retrying with basic mode...');
+
+            // Fallback to basic sentiment
+            try {
+                const ticker = (ctx.message.text.split(/\s+/)[1] || 'BTC').toUpperCase().replace('$', '');
+                const fetchResult = await twitterService.fetchTickerTweets(ticker);
+                const analysis = analyzeTweets(fetchResult.tweets || [], new Map(), []);
+                const priceData = await priceService.getPrice(ticker);
+                const message = formatSentimentSnapshot(ticker, analysis, priceData);
+                await ctx.replyWithHTML(message);
+            } catch (e2) {
+                ctx.reply('❌ All sources failed. Please try again later.');
+            }
         }
     });
 
@@ -448,17 +461,17 @@ function createBot() {
 
             const sectors = {};
 
+            const { getFormattedIntelligence: _heatmapIntel } = require('../services/intelligence.service');
             for (const ticker of watchlist.slice(0, 8)) {
-                const fetchResult = await twitterService.fetchTickerTweets(ticker);
-                const analysis = analyzeTweets(fetchResult.tweets || [], new Map(), []);
-                const sector = SECTOR_MAP[ticker] || 'Other';
-
-                if (!sectors[sector]) sectors[sector] = { tickers: [], totalSent: 0, count: 0 };
-                sectors[sector].tickers.push(ticker);
-                sectors[sector].totalSent += analysis.sentiment;
-                sectors[sector].count++;
-
-                await new Promise(r => setTimeout(r, 300));
+                try {
+                    const intel = await _heatmapIntel(ticker, { topN: 3 });
+                    const sentiment = intel.aggregated?.sentiment ?? 0;
+                    const sector = SECTOR_MAP[ticker] || 'Other';
+                    if (!sectors[sector]) sectors[sector] = { tickers: [], totalSent: 0, count: 0 };
+                    sectors[sector].tickers.push(ticker);
+                    sectors[sector].totalSent += sentiment;
+                    sectors[sector].count++;
+                } catch { /* skip ticker on error */ }
             }
 
             const lines = Object.entries(sectors).map(([name, data]) => {
@@ -843,6 +856,29 @@ function createBot() {
     });
 
     // ─────────────────────────────────────
+    // /digest — toggle daily digest
+    // ─────────────────────────────────────
+    bot.command('digest', async (ctx) => {
+        try {
+            const db = require('../db/setup').getDb();
+            const telegramId = String(ctx.from.id);
+            const row = db.prepare('SELECT id, settings FROM users WHERE telegram_id = ?').get(telegramId);
+            if (!row) return ctx.reply('❌ User not found. Send /start first.');
+            const settings = JSON.parse(row.settings || '{}');
+            settings.dailyDigest = !settings.dailyDigest;
+            db.prepare('UPDATE users SET settings = ? WHERE id = ?').run(JSON.stringify(settings), row.id);
+            const status = settings.dailyDigest ? '✅ ON' : '❌ OFF';
+            await ctx.reply(
+                `📋 Daily Digest: ${status}\n\n` +
+                `You will ${settings.dailyDigest ? 'now receive' : 'no longer receive'} your 8 AM IST market summary.`
+            );
+        } catch (e) {
+            logger.error(`[Bot] /digest error: ${e.message}`);
+            ctx.reply('❌ Error toggling digest setting');
+        }
+    });
+
+    // ─────────────────────────────────────
     // Keyboard button handlers
     // ─────────────────────────────────────
     bot.hears('📊 Sentiment', async (ctx) => {
@@ -852,25 +888,138 @@ function createBot() {
             if (watchlist.length === 0) {
                 return ctx.reply('Add tickers first: /watch BTC ETH TSLA');
             }
-            // Simulate /sentiment for first watchlist item
-            ctx.message.text = `/sentiment ${watchlist[0]}`;
-            // Trigger sentiment command
             const ticker = watchlist[0];
-            const fetchResult = await twitterService.fetchTickerTweets(ticker);
-            const analysis = analyzeTweets(fetchResult.tweets || [], new Map(), []);
-            const priceData = await priceService.getPrice(ticker);
-            const message = formatSentimentSnapshot(ticker, analysis, priceData);
-            await ctx.replyWithHTML(message);
+            await ctx.reply(`⏳ Fetching multi-source sentiment for $${ticker}...`);
+            const { getFormattedIntelligence } = require('../services/intelligence.service');
+            const intel = await getFormattedIntelligence(ticker, { topN: 5 });
+            await ctx.replyWithMarkdownV2(escapeMarkdownV2(intel.telegramMessage), {
+                ...Markup.inlineKeyboard([[
+                    Markup.button.url(`🐦 Search on X`, `https://x.com/search?q=%24${ticker}&f=live`),
+                    Markup.button.callback('🔄 Refresh', `refresh_${ticker}`)
+                ]]),
+                disable_web_page_preview: true
+            });
         } catch (e) {
-            ctx.reply('❌ Error');
+            logger.error(`[Bot] Sentiment keyboard error: ${e.message}`);
+            ctx.reply('❌ Error fetching sentiment');
         }
     });
 
-    bot.hears('💼 Portfolio', (ctx) => { ctx.message.text = '/portfolio'; bot.handleUpdate({ message: ctx.message, update_id: 0 }); });
-    bot.hears('📋 My Watchlist', (ctx) => { ctx.message.text = '/watchlist'; });
-    bot.hears('🔔 My Alerts', (ctx) => { ctx.message.text = '/alerts'; });
-    bot.hears('⚙️ Settings', (ctx) => { ctx.message.text = '/settings'; });
-    bot.hears('❓ Help', (ctx) => ctx.reply('/help'));
+    bot.hears('💼 Portfolio', async (ctx) => {
+        try {
+            const user = getOrCreateUser(ctx);
+            const db = require('../db/setup').getDb();
+            const positions = db.prepare('SELECT * FROM positions WHERE user_id = ? AND active = 1').all(user.id);
+            if (positions.length === 0) {
+                return ctx.reply('No tracked positions.\nUse /add_position BTC 0.5 45000 to log a trade.');
+            }
+            const lines = [];
+            for (const pos of positions.slice(0, 6)) {
+                try {
+                    const price = await priceService.getPrice(pos.ticker);
+                    const pnl = ((price.price - pos.entry_price) / pos.entry_price * 100).toFixed(2);
+                    const emoji = pnl >= 0 ? '🟢' : '🔴';
+                    lines.push(`${emoji} <b>$${pos.ticker}</b>: ${pos.quantity} @ $${pos.entry_price}\n   Now: $${price.price?.toFixed(2)} | P&amp;L: ${pnl}%`);
+                } catch {
+                    lines.push(`• <b>$${pos.ticker}</b>: ${pos.quantity} @ $${pos.entry_price} — <i>price unavailable</i>`);
+                }
+            }
+            const footer = positions.length > 6 ? `\n\n<i>+${positions.length - 6} more — use /portfolio for full view</i>` : '';
+            await ctx.replyWithHTML(`<b>💼 Portfolio</b>\n\n${lines.join('\n\n')}${footer}`);
+        } catch (e) {
+            logger.error(`[Bot] Portfolio keyboard error: ${e.message}`);
+            ctx.reply('❌ Error loading portfolio');
+        }
+    });
+
+    bot.hears('📋 My Watchlist', async (ctx) => {
+        try {
+            const user = getOrCreateUser(ctx);
+            const watchlist = getUserWatchlist(user.id);
+            if (watchlist.length === 0) {
+                return ctx.reply('Your watchlist is empty.\nUse /watch BTC ETH TSLA to add tickers.');
+            }
+            const list = watchlist.map((t, i) => `${i + 1}. $${t}`).join('\n');
+            await ctx.replyWithHTML(
+                `<b>📋 Your Watchlist</b>\n\n${list}\n\n<i>Use /watch TICKER to add · /unwatch TICKER to remove</i>`
+            );
+        } catch (e) {
+            ctx.reply('❌ Error loading watchlist');
+        }
+    });
+
+    bot.hears('🔔 My Alerts', async (ctx) => {
+        try {
+            const user = getOrCreateUser(ctx);
+            const db = require('../db/setup').getDb();
+            const alerts = db.prepare('SELECT * FROM alerts WHERE user_id = ? AND enabled = 1 ORDER BY created_at DESC').all(user.id);
+            if (alerts.length === 0) {
+                return ctx.reply('No active alerts.\nUse /alert_sentiment BTC to create one.');
+            }
+            const lines = alerts.slice(0, 10).map(a =>
+                `🔔 <b>${a.type}</b>${a.ticker ? ` — $${a.ticker}` : ''}\n   ${a.description || a.type}`
+            ).join('\n\n');
+            await ctx.replyWithHTML(
+                `<b>🔔 Your Active Alerts</b>\n\n${lines}` +
+                (alerts.length > 10 ? `\n\n<i>Showing 10 of ${alerts.length}</i>` : '')
+            );
+        } catch (e) {
+            ctx.reply('❌ Error loading alerts');
+        }
+    });
+
+    bot.hears('⚙️ Settings', async (ctx) => {
+        try {
+            const user = getOrCreateUser(ctx);
+            const watchlist = getUserWatchlist(user.id);
+            const db = require('../db/setup').getDb();
+            const tracked = db.prepare('SELECT COUNT(*) as cnt FROM tracked_accounts WHERE user_id = ?').get(user.id);
+            const userSettings = typeof user.settings === 'string' ? JSON.parse(user.settings || '{}') : (user.settings || {});
+            await ctx.replyWithHTML(
+                `⚙️ <b>Your Settings</b>\n\n` +
+                `👤 <b>Username:</b> @${user.username || 'unknown'}\n` +
+                `🏷️ <b>Tier:</b> ${(user.tier || 'free').toUpperCase()}\n` +
+                `📋 <b>Watchlist:</b> ${watchlist.length} tickers\n` +
+                `👥 <b>Tracked Accounts:</b> ${tracked?.cnt || 0}\n` +
+                `🔔 <b>Status:</b> ${isMuted(user) ? '🔕 Muted' : '✅ Active'}\n` +
+                `📋 <b>Daily Digest:</b> ${userSettings.dailyDigest ? '✅ ON' : '❌ OFF'}\n\n` +
+                `<b>Commands:</b>\n` +
+                `/digest — Toggle 8 AM daily digest\n` +
+                `/mute 2h — Pause alerts\n` +
+                `/watch BTC — Add ticker\n` +
+                `/track @handle — Track account`
+            );
+        } catch (e) {
+            ctx.reply('❌ Error loading settings');
+        }
+    });
+
+    bot.hears('❓ Help', async (ctx) => {
+        await ctx.replyWithHTML(
+            `<b>🤖 TraderX Bot — Commands</b>\n\n` +
+            `<b>📊 Sentiment</b>\n` +
+            `/sentiment BTC — Multi-source analysis\n` +
+            `/heatmap — Sector sentiment overview\n\n` +
+            `<b>💼 Portfolio</b>\n` +
+            `/portfolio — View P&amp;L summary\n` +
+            `/add_position BTC 0.5 45000 — Log a trade\n\n` +
+            `<b>📋 Watchlist</b>\n` +
+            `/watchlist — View your tickers\n` +
+            `/watch BTC ETH — Add tickers\n` +
+            `/unwatch BTC — Remove ticker\n\n` +
+            `<b>🔔 Alerts</b>\n` +
+            `/alert_sentiment BTC — Sentiment flip alert\n` +
+            `/alert_divergence BTC — Price/sentiment divergence\n` +
+            `/myalerts — View active alerts\n\n` +
+            `<b>👥 Track Accounts</b>\n` +
+            `/track @elonmusk — Track influencer\n` +
+            `/tracked — List tracked accounts\n\n` +
+            `<b>⚙️ Settings</b>\n` +
+            `/digest — Toggle 8 AM daily digest\n` +
+            `/mute 2h — Silence alerts temporarily\n` +
+            `/settings — View your settings`
+        );
+    });
 
     // ─────────────────────────────────────
     // Callback queries (inline buttons)
@@ -884,15 +1033,27 @@ function createBot() {
                 ctx.message = ctx.callbackQuery.message;
                 ctx.message.text = '/portfolio';
             } else {
-                await ctx.answerCbQuery(`Refreshing $${ticker}...`);
-                const fetchResult = await twitterService.fetchTickerTweets(ticker);
-                const analysis = analyzeTweets(fetchResult.tweets || [], new Map(), []);
-                const priceData = await priceService.getPrice(ticker);
-                const message = formatSentimentSnapshot(ticker, analysis, priceData);
+                await ctx.answerCbQuery(`Refreshing $${ticker} from all sources...`);
+
                 try {
-                    await ctx.editMessageText(message, { parse_mode: 'HTML' });
-                } catch {
-                    await ctx.replyWithHTML(message);
+                    const { getFormattedIntelligence } = require('../services/intelligence.service');
+                    // Force refresh to bypass 3-minute cache
+                    const intel = await getFormattedIntelligence(ticker, { topN: 5, forceRefresh: true });
+
+                    await ctx.editMessageText(
+                        escapeMarkdownV2(intel.telegramMessage),
+                        {
+                            parse_mode: 'MarkdownV2',
+                            ...Markup.inlineKeyboard([
+                                [Markup.button.url(`🐦 Search on X`, `https://x.com/search?q=%24${ticker}&f=live`),
+                                Markup.button.callback('🔄 Refresh', `refresh_${ticker}`)]
+                            ]),
+                            disable_web_page_preview: true
+                        }
+                    );
+                } catch (err) {
+                    logger.error(`[Bot] Refresh error: ${err.message}`);
+                    await ctx.answerCbQuery('Failed to refresh data.', { show_alert: true });
                 }
             }
         }

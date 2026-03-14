@@ -17,6 +17,7 @@ const config = require('./config/env');
 const logger = require('./config/logger');
 const { getDb } = require('./db/setup');
 const { createBot, sendAlertToUser } = require('./delivery/telegram.bot');
+const { startDiscordBot, sendDiscordAlert } = require('./delivery/discord.bot');
 const { startScheduler, injectBot } = require('./jobs/scheduler');
 
 // Routes
@@ -26,6 +27,11 @@ const portfolioRoutes = require('./api/routes/portfolio.routes');
 const alertsRoutes = require('./api/routes/alerts.routes');
 const backtestRoutes = require('./api/routes/backtest.routes');
 const syncRoutes = require('./api/routes/sync.routes');
+const authRoutes = require('./api/routes/auth.routes');
+const subscriptionRoutes = require('./api/routes/subscription.routes');
+const webhookRoutes = require('./api/routes/webhook.routes');
+const whaleRoutes = require('./api/routes/whale.routes');
+const copilotRoutes = require('./api/routes/copilot.routes');
 
 // ============================================================================
 // EXPRESS APP
@@ -36,8 +42,28 @@ const app = express();
 // Security & compression
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
+const allowedOrigins = new Set([
+    'http://localhost:3000',
+    'http://localhost:3001',
+    config.FRONTEND_URL
+].filter(Boolean));
+
 app.use(cors({
-    origin: ['chrome-extension://*', 'http://localhost:3000', 'http://localhost:3001'],
+    origin: (origin, callback) => {
+        // Allow non-browser and server-to-server calls.
+        if (!origin) return callback(null, true);
+
+        // Allow all extension origins (Chrome generates unique extension IDs).
+        if (origin.startsWith('chrome-extension://')) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.has(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true
 }));
 
@@ -49,6 +75,13 @@ if (config.isDev) {
         stream: { write: (msg) => logger.info(msg.trim()) }
     }));
 }
+
+// ============================================================================
+// WEBHOOK ROUTES (must be before body parsing for raw body access)
+// ============================================================================
+
+// Stripe webhooks need raw body — mounted before json parsing
+app.use('/webhooks', webhookRoutes);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -71,12 +104,16 @@ app.use('/dashboard', express.static(path.join(__dirname, '../dashboard/dist')))
 // API ROUTES
 // ============================================================================
 
+app.use('/api/auth', authRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/sentiment', sentimentRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/backtest', backtestRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/whale', whaleRoutes);
+app.use('/api/copilot', copilotRoutes);
 
 // ============================================================================
 // HEALTH & INFO ENDPOINTS
@@ -124,6 +161,11 @@ app.get('/health', (req, res) => {
 let bot = null;
 
 app.post('/webhook/telegram', express.json(), (req, res) => {
+    const secret = req.headers['x-telegram-bot-api-secret-token'];
+    if (config.TELEGRAM_WEBHOOK_SECRET && secret !== config.TELEGRAM_WEBHOOK_SECRET) {
+        logger.warn('[Webhook] Rejected Telegram update — invalid secret token');
+        return res.sendStatus(403);
+    }
     if (bot && config.TELEGRAM_WEBHOOK_URL) {
         bot.handleUpdate(req.body);
     }
@@ -170,8 +212,12 @@ async function start() {
             logger.info(`[Startup] Telegram bot in webhook mode ✓`);
         } else {
             // Long polling mode (development)
-            bot.launch({ dropPendingUpdates: true });
-            logger.info('[Startup] Telegram bot polling started ✓');
+            try {
+                bot.launch({ dropPendingUpdates: true });
+                logger.info('[Startup] Telegram bot polling started ✓');
+            } catch (launchErr) {
+                logger.error(`[Startup] Telegram bot polling failed: ${launchErr.message}`);
+            }
         }
     } else {
         logger.warn('[Startup] Telegram bot not started (no token configured)');
@@ -181,6 +227,22 @@ async function start() {
     logger.info('[Startup] Starting background scheduler...');
     injectBot(bot, sendAlertToUser);
     startScheduler();
+
+    // Start Discord bot
+    logger.info('[Startup] Starting Discord bot...');
+    let discordClient = null;
+    try {
+        discordClient = await startDiscordBot();
+        if (discordClient) {
+            app.locals.discordClient = discordClient;
+            app.locals.sendDiscordAlertFn = sendDiscordAlert;
+            logger.info('[Startup] Discord bot started ✓');
+        } else {
+            logger.warn('[Startup] Discord bot not started (no token configured)');
+        }
+    } catch (err) {
+        logger.error('[Startup] Discord bot failed to start:', err.message);
+    }
 
     // Start HTTP server
     const server = app.listen(config.PORT, () => {
@@ -192,7 +254,9 @@ async function start() {
         logger.info('='.repeat(60));
         logger.info(`  Twitter API:  ${config.features.twitterApiEnabled ? '✓ ENABLED (live)' : '✗ disabled (demo mode)'}`);
         logger.info(`  Telegram Bot: ${bot ? '✓ RUNNING' : '✗ not configured'}`);
+        logger.info(`  Discord Bot:  ${discordClient ? '✓ RUNNING' : '✗ not configured'}`);
         logger.info(`  OpenAI:       ${config.features.openAiEnabled ? '✓ ENABLED' : '✗ not configured'}`);
+        logger.info(`  Stripe:       ${config.features.stripeEnabled ? '✓ ENABLED' : '✗ not configured'}`);
         logger.info('='.repeat(60));
     });
 
@@ -203,6 +267,10 @@ async function start() {
             if (bot) {
                 logger.info('[Shutdown] Stopping Telegram bot...');
                 bot.stop(signal);
+            }
+            if (discordClient) {
+                logger.info('[Shutdown] Stopping Discord bot...');
+                discordClient.destroy();
             }
             logger.info('[Shutdown] Done.');
             process.exit(0);

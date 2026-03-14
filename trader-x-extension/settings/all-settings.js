@@ -555,9 +555,6 @@ if (!window.TraderXSuggested) {
   console.error('[Settings] TraderXSuggested not loaded!');
 }
 
-const { DEFAULT_CONFIG, getConfig, saveConfig } = window.TraderXUtils || {};
-const { SUGGESTED_HANDLES, getAllSuggestedHandles } = window.TraderXSuggested || {};
-
 let currentConfig = null;
 
 // === INITIALIZATION ===

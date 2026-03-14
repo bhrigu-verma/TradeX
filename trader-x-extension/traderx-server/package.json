@@ -25,6 +25,7 @@
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dayjs": "^1.11.19",
+    "discord.js": "^14.18.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
@@ -33,6 +34,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
+    "stripe": "^17.7.0",
     "telegraf": "^4.16.3",
     "uuid": "^13.0.0",
     "winston": "^3.19.0"

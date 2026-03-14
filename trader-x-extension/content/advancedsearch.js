@@ -48,6 +48,10 @@ class TraderXAdvancedSearch {
     this.isSearchActive = false;
     this.loadedTweetCount = 0;
     this.scrollIntervalId = null;
+
+    // Incremental tweet collector — survives X's virtual scroll DOM removal
+    this.collectedTweets = new Map(); // key = hash, value = tweet data
+    this.tweetObserver = null;
   }
 
   // ========================================================================
@@ -135,6 +139,7 @@ class TraderXAdvancedSearch {
     this.currentTicker = ticker.toUpperCase();
     this.isSearchActive = true;
     this.loadedTweetCount = 0;
+    this.collectedTweets = new Map();
 
     // Build optimized query
     const query = this.buildSearchQuery(ticker, customConfig);
@@ -188,8 +193,11 @@ class TraderXAdvancedSearch {
     let stuckCount = 0;
     const startTime = Date.now();
 
-    // Show loading indicator
+    // Show loading indicator (with stop button)
     this.showLoadingIndicator();
+
+    // Start collecting tweets incrementally via MutationObserver
+    this.startTweetCollector();
 
     this.scrollIntervalId = setInterval(() => {
       // Check timeout
@@ -199,8 +207,9 @@ class TraderXAdvancedSearch {
         return;
       }
 
-      // Count tweets
-      const currentTweetCount = this.countVisibleTweets();
+      // Harvest any visible tweets into collectedTweets Map
+      this.harvestVisibleTweets();
+      const currentTweetCount = this.collectedTweets.size;
       this.loadedTweetCount = currentTweetCount;
 
       // Check if we hit target
@@ -242,14 +251,104 @@ class TraderXAdvancedSearch {
       this.scrollIntervalId = null;
     }
 
+    // Stop tweet collector observer
+    if (this.tweetObserver) {
+      this.tweetObserver.disconnect();
+      this.tweetObserver = null;
+    }
+
+    // Final harvest of any remaining visible tweets
+    this.harvestVisibleTweets();
+    this.loadedTweetCount = this.collectedTweets.size;
+
     // Clear session state
     sessionStorage.removeItem('traderx_search_active');
 
     // Show completion
     this.showCompletionMessage(prefix);
 
-    // Process all loaded tweets
+    // Process all loaded tweets (badge marking etc.)
     this.processAllTweets();
+
+    console.log(`[TraderX] Total unique tweets collected: ${this.collectedTweets.size}`);
+  }
+
+  // ========================================================================
+  // INCREMENTAL TWEET COLLECTOR
+  // ========================================================================
+  // X.com uses virtual scrolling — tweets are destroyed from DOM as you scroll.
+  // This collector harvests tweet data into a Map as they appear, so nothing is lost.
+
+  startTweetCollector() {
+    // Initial harvest
+    this.harvestVisibleTweets();
+
+    // Watch for new tweets being added to the DOM
+    const feedContainer = document.querySelector('[data-testid="primaryColumn"]') || document.body;
+
+    this.tweetObserver = new MutationObserver(() => {
+      this.harvestVisibleTweets();
+    });
+
+    this.tweetObserver.observe(feedContainer, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  harvestVisibleTweets() {
+    const tweetEls = document.querySelectorAll('article[data-testid="tweet"]');
+
+    tweetEls.forEach(tweet => {
+      try {
+        // Get tweet text
+        const tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
+        const text = tweetTextEl ? tweetTextEl.textContent.trim() : '';
+        if (!text) return;
+
+        // Create a unique key from author + text substring
+        const authorEl = tweet.querySelector('[data-testid="User-Name"]');
+        const authorText = authorEl ? authorEl.textContent : '';
+        const author = authorText.split('@')[1]?.split('·')[0]?.trim() || 'Unknown';
+        const displayName = authorText.split('@')[0]?.trim() || 'Unknown';
+
+        const key = `${author}::${text.substring(0, 80)}`;
+        if (this.collectedTweets.has(key)) return; // Already stored
+
+        // Timestamp
+        const timeEl = tweet.querySelector('time');
+        const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
+
+        // Engagement
+        const replyEl = tweet.querySelector('[data-testid="reply"]');
+        const retweetEl = tweet.querySelector('[data-testid="retweet"]');
+        const likeEl = tweet.querySelector('[data-testid="like"]');
+
+        const replies = this.parseEngagementNumber(replyEl?.textContent?.trim() || '0');
+        const retweets = this.parseEngagementNumber(retweetEl?.textContent?.trim() || '0');
+        const likes = this.parseEngagementNumber(likeEl?.textContent?.trim() || '0');
+
+        this.collectedTweets.set(key, {
+          author: `@${author}`,
+          displayName,
+          timestamp,
+          text,
+          replies,
+          retweets,
+          likes,
+          engagementScore: replies + retweets + likes,
+        });
+      } catch (err) {
+        // skip malformed tweet
+      }
+    });
+  }
+
+  getCollectedTweetsArray() {
+    return Array.from(this.collectedTweets.values()).map((t, i) => ({
+      ...t,
+      index: i + 1,
+    }));
   }
 
   // ========================================================================
@@ -366,35 +465,66 @@ class TraderXAdvancedSearch {
             border-radius: 50%;
             animation: traderx-spin 0.8s linear infinite;
           "></div>
-          <div>
+          <div style="flex: 1;">
             <div style="font-size: 14px;">⚡ Loading $${this.currentTicker} posts...</div>
             <div id="traderx-count" style="font-size: 12px; opacity: 0.9; margin-top: 4px;">
-              0 tweets loaded
+              0 tweets collected
             </div>
           </div>
+          <button id="traderx-stop-btn" style="
+            background: #EF4444;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+            flex-shrink: 0;
+          " title="Stop loading">
+            ■
+          </button>
         </div>
       </div>
       <style>
         @keyframes traderx-spin {
           to { transform: rotate(360deg); }
         }
+        #traderx-stop-btn:hover {
+          background: #DC2626 !important;
+          transform: scale(1.1);
+        }
       </style>
     `;
 
     document.body.appendChild(indicator);
+
+    // Wire up stop button
+    const stopBtn = document.getElementById('traderx-stop-btn');
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        this.stopAutoScroll('Stopped — ');
+      });
+    }
   }
 
   updateLoadingIndicator(current, max) {
     const countEl = document.getElementById('traderx-count');
     if (countEl) {
       const percentage = Math.min(100, Math.round((current / max) * 100));
-      countEl.textContent = `${current} tweets loaded (${percentage}%)`;
+      countEl.textContent = `${current} tweets collected (${percentage}%)`;
     }
   }
 
   showCompletionMessage(prefix = '') {
     const indicator = document.getElementById('traderx-loading');
     if (indicator) {
+      const tweetCount = this.collectedTweets.size;
       indicator.innerHTML = `
         <div id="traderx-completion-box" style="
           position: fixed;
@@ -415,7 +545,7 @@ class TraderXAdvancedSearch {
             <div>
               <div style="font-size: 14px;">${prefix}Search Done!</div>
               <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">
-                ${this.loadedTweetCount} $${this.currentTicker} tweets loaded
+                ${tweetCount} $${this.currentTicker} tweets collected
               </div>
             </div>
           </div>
@@ -441,43 +571,60 @@ class TraderXAdvancedSearch {
               <span>📋</span>
               <span>Copy for AI Analysis</span>
             </button>
-            
-            <button id="traderx-export-csv" style="
-              width: 100%;
-              background: rgba(255, 255, 255, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              color: white;
-              padding: 10px 16px;
-              border-radius: 8px;
-              font-size: 13px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.2s;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 8px;
-            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
-               onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-              <span>📊</span>
-              <span>Export to CSV</span>
-            </button>
+
+            <div style="display: flex; gap: 8px;">
+              <button id="traderx-export-json" style="
+                flex: 1;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+                 onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <span>{ }</span>
+                <span>JSON</span>
+              </button>
+              
+              <button id="traderx-export-csv" style="
+                flex: 1;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+              " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+                 onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <span>📊</span>
+                <span>CSV</span>
+              </button>
+            </div>
           </div>
         </div>
       `;
 
       // Add click handlers
-      const copyBtn = document.getElementById('traderx-copy-tweets');
-      if (copyBtn) {
-        copyBtn.addEventListener('click', () => this.copyAllTweetsToClipboard());
-      }
+      document.getElementById('traderx-copy-tweets')?.addEventListener('click', () => this.copyAllTweetsToClipboard());
+      document.getElementById('traderx-export-json')?.addEventListener('click', () => this.exportToJSON());
+      document.getElementById('traderx-export-csv')?.addEventListener('click', () => this.exportToCSV());
 
-      const csvBtn = document.getElementById('traderx-export-csv');
-      if (csvBtn) {
-        csvBtn.addEventListener('click', () => this.exportToCSV());
-      }
-
-      // Auto-hide after 10 seconds
+      // Auto-hide after 30 seconds (longer since user needs time to click)
       setTimeout(() => {
         const box = document.getElementById('traderx-completion-box');
         if (box) {
@@ -485,7 +632,7 @@ class TraderXAdvancedSearch {
           box.style.transition = 'opacity 0.5s';
           setTimeout(() => indicator.remove(), 500);
         }
-      }, 10000);
+      }, 30000);
     }
   }
 
@@ -495,48 +642,12 @@ class TraderXAdvancedSearch {
 
   async copyAllTweetsToClipboard() {
     try {
-      // Get all tweet articles on the page
-      const tweets = document.querySelectorAll('article[data-testid="tweet"]');
+      const tweetData = this.getCollectedTweetsArray();
 
-      if (tweets.length === 0) {
-        alert('No tweets found to copy!');
+      if (tweetData.length === 0) {
+        alert('No tweets collected! Run a search first.');
         return;
       }
-
-      // Extract tweet data
-      const tweetData = [];
-      tweets.forEach((tweet, index) => {
-        // Get author
-        const authorEl = tweet.querySelector('[data-testid="User-Name"]');
-        const author = authorEl ? authorEl.textContent.split('@')[1]?.split('·')[0]?.trim() : 'Unknown';
-
-        // Get tweet text
-        const tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
-        const text = tweetTextEl ? tweetTextEl.textContent : '';
-
-        // Get timestamp
-        const timeEl = tweet.querySelector('time');
-        const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
-
-        // Get engagement metrics
-        const replyEl = tweet.querySelector('[data-testid="reply"]');
-        const retweetEl = tweet.querySelector('[data-testid="retweet"]');
-        const likeEl = tweet.querySelector('[data-testid="like"]');
-
-        const replies = replyEl ? replyEl.textContent.trim() : '0';
-        const retweets = retweetEl ? retweetEl.textContent.trim() : '0';
-        const likes = likeEl ? likeEl.textContent.trim() : '0';
-
-        if (text) {
-          tweetData.push({
-            index: index + 1,
-            author: `@${author}`,
-            text,
-            timestamp,
-            engagement: { replies, retweets, likes }
-          });
-        }
-      });
 
       // Format for LLM analysis
       const formattedText = this.formatTweetsForLLM(tweetData);
@@ -548,7 +659,7 @@ class TraderXAdvancedSearch {
       const copyBtn = document.getElementById('traderx-copy-tweets');
       if (copyBtn) {
         const originalHTML = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<span>✓</span><span>Copied! Paste into ChatGPT/Claude</span>';
+        copyBtn.innerHTML = `<span>✓</span><span>Copied ${tweetData.length} tweets! Paste into ChatGPT/Claude</span>`;
         copyBtn.style.background = 'rgba(255, 255, 255, 0.4)';
 
         setTimeout(() => {
@@ -588,7 +699,7 @@ class TraderXAdvancedSearch {
       formatted += `### Tweet ${tweet.index}\n`;
       formatted += `**Author:** ${tweet.author}\n`;
       formatted += `**Time:** ${tweet.timestamp}\n`;
-      formatted += `**Engagement:** 💬 ${tweet.engagement.replies} | 🔁 ${tweet.engagement.retweets} | ❤️ ${tweet.engagement.likes}\n\n`;
+      formatted += `**Engagement:** 💬 ${tweet.replies} | 🔁 ${tweet.retweets} | ❤️ ${tweet.likes}\n\n`;
       formatted += `**Content:**\n${tweet.text}\n\n`;
       formatted += `---\n\n`;
     });
@@ -600,77 +711,110 @@ class TraderXAdvancedSearch {
   }
 
   // ========================================================================
-  // EXPORT TO CSV (For Spreadsheet Analysis)
+  // EXPORT TO JSON (Download File)
   // ========================================================================
 
-  async exportToCSV() {
+  exportToJSON() {
     try {
-      // Get all tweet articles on the page
-      const tweets = document.querySelectorAll('article[data-testid="tweet"]');
+      const tweetData = this.getCollectedTweetsArray();
 
-      if (tweets.length === 0) {
-        alert('No tweets found to export!');
+      if (tweetData.length === 0) {
+        alert('No tweets collected! Run a search first.');
         return;
       }
 
-      // Extract tweet data
-      const tweetData = [];
-      tweets.forEach((tweet, index) => {
-        // Get author
-        const authorEl = tweet.querySelector('[data-testid="User-Name"]');
-        const author = authorEl ? authorEl.textContent.split('@')[1]?.split('·')[0]?.trim() : 'Unknown';
+      const ticker = this.currentTicker || 'TICKER';
+      const jsonData = {
+        ticker: `$${ticker}`,
+        exportDate: new Date().toISOString(),
+        source: window.location.href,
+        totalTweets: tweetData.length,
+        tweets: tweetData.map(t => ({
+          index: t.index,
+          author: t.author,
+          displayName: t.displayName,
+          timestamp: t.timestamp,
+          text: t.text,
+          replies: t.replies,
+          retweets: t.retweets,
+          likes: t.likes,
+          engagementScore: t.engagementScore,
+        })),
+      };
 
-        // Get tweet text
-        const tweetTextEl = tweet.querySelector('[data-testid="tweetText"]');
-        const text = tweetTextEl ? tweetTextEl.textContent : '';
+      const jsonString = JSON.stringify(jsonData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `${ticker}_tweets_${date}.json`;
 
-        // Get timestamp
-        const timeEl = tweet.querySelector('time');
-        const timestamp = timeEl ? timeEl.getAttribute('datetime') : '';
+      this.downloadFile(blob, filename);
 
-        // Get engagement metrics
-        const replyEl = tweet.querySelector('[data-testid="reply"]');
-        const retweetEl = tweet.querySelector('[data-testid="retweet"]');
-        const likeEl = tweet.querySelector('[data-testid="like"]');
+      // Update button
+      const jsonBtn = document.getElementById('traderx-export-json');
+      if (jsonBtn) {
+        const originalHTML = jsonBtn.innerHTML;
+        jsonBtn.innerHTML = `<span>✓</span><span>${tweetData.length} saved</span>`;
+        jsonBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+        setTimeout(() => {
+          jsonBtn.innerHTML = originalHTML;
+          jsonBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+        }, 3000);
+      }
 
-        const replies = this.parseEngagementNumber(replyEl ? replyEl.textContent.trim() : '0');
-        const retweets = this.parseEngagementNumber(retweetEl ? retweetEl.textContent.trim() : '0');
-        const likes = this.parseEngagementNumber(likeEl ? likeEl.textContent.trim() : '0');
+      console.log(`[AdvancedSearch] Exported ${tweetData.length} tweets to JSON`);
+    } catch (error) {
+      console.error('[AdvancedSearch] JSON export failed:', error);
+      alert('Failed to export JSON. Please try again.');
+    }
+  }
 
-        // Calculate total engagement score
-        const engagementScore = replies + retweets + likes;
+  // ========================================================================
+  // EXPORT TO CSV (For Spreadsheet Analysis)
+  // ========================================================================
 
-        if (text) {
-          tweetData.push({
-            index: index + 1,
-            author: author,
-            timestamp: timestamp,
-            text: text.replace(/"/g, '""'), // Escape quotes for CSV
-            replies,
-            retweets,
-            likes,
-            engagementScore
-          });
-        }
-      });
+  exportToCSV() {
+    try {
+      const tweetData = this.getCollectedTweetsArray();
 
-      // Create CSV content
-      const csvContent = this.convertToCSV(tweetData);
+      if (tweetData.length === 0) {
+        alert('No tweets collected! Run a search first.');
+        return;
+      }
 
-      // Create download
       const ticker = this.currentTicker || 'TICKER';
       const date = new Date().toISOString().split('T')[0];
+
+      // BOM for Excel UTF-8 support
+      let csv = '\uFEFF';
+      // Column headers
+      csv += 'Index,Author,Display Name,Timestamp,Tweet Text,Replies,Retweets,Likes,Engagement Score\n';
+
+      // Data rows — proper CSV escaping
+      tweetData.forEach(t => {
+        const text = t.text.replace(/"/g, '""').replace(/\r?\n/g, ' ');
+        const displayName = (t.displayName || '').replace(/"/g, '""');
+        csv += `${t.index},`;
+        csv += `"${t.author}",`;
+        csv += `"${displayName}",`;
+        csv += `"${t.timestamp}",`;
+        csv += `"${text}",`;
+        csv += `${t.replies},`;
+        csv += `${t.retweets},`;
+        csv += `${t.likes},`;
+        csv += `${t.engagementScore}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const filename = `${ticker}_tweets_${date}.csv`;
 
-      this.downloadCSV(csvContent, filename);
+      this.downloadFile(blob, filename);
 
-      // Update button to show success
+      // Update button
       const csvBtn = document.getElementById('traderx-export-csv');
       if (csvBtn) {
         const originalHTML = csvBtn.innerHTML;
-        csvBtn.innerHTML = '<span>✓</span><span>Downloaded! Check your Downloads folder</span>';
+        csvBtn.innerHTML = `<span>✓</span><span>${tweetData.length} saved</span>`;
         csvBtn.style.background = 'rgba(255, 255, 255, 0.4)';
-
         setTimeout(() => {
           csvBtn.innerHTML = originalHTML;
           csvBtn.style.background = 'rgba(255, 255, 255, 0.2)';
@@ -685,60 +829,23 @@ class TraderXAdvancedSearch {
   }
 
   parseEngagementNumber(str) {
-    // Convert "1.2K" to 1200, "5M" to 5000000, etc.
     if (!str || str === '0') return 0;
-
     const num = parseFloat(str);
+    if (isNaN(num)) return 0;
     if (str.includes('K')) return Math.round(num * 1000);
     if (str.includes('M')) return Math.round(num * 1000000);
     return Math.round(num);
   }
 
-  convertToCSV(data) {
-    const ticker = this.currentTicker || 'TICKER';
-    const date = new Date().toLocaleDateString();
-
-    // CSV Header
-    let csv = `# Twitter Data Export for $${ticker}\n`;
-    csv += `# Date: ${date}\n`;
-    csv += `# Total Tweets: ${data.length}\n`;
-    csv += `\n`;
-
-    // Column headers
-    csv += 'Index,Author,Timestamp,Tweet Text,Replies,Retweets,Likes,Engagement Score\n';
-
-    // Data rows
-    data.forEach(tweet => {
-      csv += `${tweet.index},`;
-      csv += `@${tweet.author},`;
-      csv += `${tweet.timestamp},`;
-      csv += `"${tweet.text}",`;
-      csv += `${tweet.replies},`;
-      csv += `${tweet.retweets},`;
-      csv += `${tweet.likes},`;
-      csv += `${tweet.engagementScore}\n`;
-    });
-
-    return csv;
-  }
-
-  downloadCSV(content, filename) {
-    // Create blob
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-
-    // Create download link
+  downloadFile(blob, filename) {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Clean up
     URL.revokeObjectURL(url);
   }
 

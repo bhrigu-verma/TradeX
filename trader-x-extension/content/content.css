@@ -1,22 +1,29 @@
-/* === TRADERX PREMIUM FINTECH REDESIGN === */
+/* === TRADERX v4.0 — CONTENT STYLES === */
+/* Injected into Twitter/X pages */
 
 :root {
-  /* Colors */
-  --graphite: #141820;
-  --soft-gray: #232830;
-  --emerald: #00A36C;
-  --brass: #C9A66B;
-  --text-primary: #F2F6F8;
-  --graphite-lighter: #1A1F2A;
-  --soft-gray-darker: #1C2028;
-  --emerald-dark: #008C5A;
-  --emerald-transparent: rgba(0, 163, 108, 0.12);
-  --brass-transparent: rgba(201, 166, 107, 0.12);
-  --text-secondary: rgba(242, 246, 248, 0.6);
-  --text-tertiary: rgba(242, 246, 248, 0.4);
-  --error: #EF4444;
+  /* Core Palette — v4.0 Obsidian Indigo */
+  --bg-deep: #06080E;
+  --bg-card: #0D1117;
+  --bg-elevated: #151B25;
+  --bg-hover: #1C2333;
 
-  /* Consistent Spacing Scale */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+
+  --accent: #6366F1;
+  --accent-bright: #818CF8;
+  --accent-glow: rgba(99, 102, 241, 0.12);
+
+  --emerald: #10B981;
+  --amber: #F59E0B;
+  --red: #EF4444;
+
+  --text-primary: #F1F5F9;
+  --text-secondary: rgba(241, 245, 249, 0.6);
+  --text-muted: rgba(241, 245, 249, 0.3);
+
+  /* Spacing Scale */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -30,20 +37,15 @@
   --radius-md: 10px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-2xl: 20px;
   --radius-full: 9999px;
 
-  /* Typography Scale */
+  /* Typography */
   --text-xs: 11px;
   --text-sm: 12px;
   --text-base: 14px;
   --text-lg: 16px;
   --text-xl: 18px;
-  --text-2xl: 20px;
-  --text-3xl: 24px;
 
-  /* Font Weights */
-  --font-regular: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
@@ -52,40 +54,31 @@
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Gradients */
-  --gradient-bullish: linear-gradient(90deg, #00A36C 0%, #00D68F 100%);
+  --gradient-bullish: linear-gradient(90deg, #10B981 0%, #34D399 100%);
   --gradient-bearish: linear-gradient(90deg, #EF4444 0%, #F97316 100%);
-  --gradient-neutral: linear-gradient(90deg, #6B7280 0%, #9CA3AF 100%);
-  --gradient-premium: linear-gradient(135deg, #C9A66B 0%, #E5C88C 100%);
-  --gradient-emerald: linear-gradient(135deg, #00A36C 0%, #00D68F 100%);
+  --gradient-accent: linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
 }
 
 .glass-card {
-  background: rgba(35, 40, 48, 0.8);
+  background: rgba(21, 27, 37, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(242, 246, 248, 0.12);
+  border: 1px solid var(--border);
 }
 
 .skeleton {
   background: linear-gradient(90deg,
-      var(--soft-gray) 0%,
-      rgba(242, 246, 248, 0.06) 50%,
-      var(--soft-gray) 100%);
+      var(--bg-elevated) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      var(--bg-elevated) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 button,
@@ -113,7 +106,7 @@ article[data-testid="tweet"] {
 
 /* Suggested handle indicator */
 article[data-traderx-suggested="true"] {
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(99, 102, 241, 0.04);
 }
 
 /* ============================================
@@ -138,13 +131,13 @@ article[data-traderx-suggested="true"] {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  background: rgba(30, 41, 59, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(21, 27, 37, 0.9);
+  border: 1px solid var(--border);
 }
 
 .traderx-ticker-tag:hover {
   transform: scale(1.05);
-  border-color: #3B82F6;
+  border-color: var(--accent);
 }
 
 .traderx-ticker-tag-symbol {
@@ -152,15 +145,15 @@ article[data-traderx-suggested="true"] {
 }
 
 .traderx-ticker-tag-symbol.bullish {
-  color: #10B981;
+  color: var(--emerald);
 }
 
 .traderx-ticker-tag-symbol.bearish {
-  color: #EF4444;
+  color: var(--red);
 }
 
 .traderx-ticker-tag-symbol.neutral {
-  color: #60A5FA;
+  color: var(--accent-bright);
 }
 
 .traderx-ticker-tag-arrow {
@@ -169,11 +162,11 @@ article[data-traderx-suggested="true"] {
 }
 
 .traderx-ticker-tag-arrow.bullish {
-  color: #10B981;
+  color: var(--emerald);
 }
 
 .traderx-ticker-tag-arrow.bearish {
-  color: #EF4444;
+  color: var(--red);
 }
 
 .traderx-ticker-tag-arrow.neutral {
@@ -181,8 +174,8 @@ article[data-traderx-suggested="true"] {
 }
 
 .traderx-ticker-more {
-  color: #6B7280;
-  font-size: 12px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
   padding: 5px 10px;
 }
 
@@ -198,7 +191,7 @@ article[data-traderx-tier="1"]::before {
   background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
   color: white;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 10px;
   font-weight: bold;
   z-index: 100;
@@ -213,7 +206,7 @@ article[data-traderx-tier="2"]::before {
   background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   color: white;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 10px;
   font-weight: bold;
   z-index: 100;
@@ -227,7 +220,7 @@ article[data-traderx-tier="3"]::before {
   background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%);
   color: #1F2937;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 10px;
   font-weight: bold;
   z-index: 100;
@@ -238,13 +231,14 @@ article[data-traderx-highlight="watchlist"]::after {
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%);
-  color: #1F2937;
+  background: var(--gradient-accent);
+  color: white;
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: bold;
   z-index: 100;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 /* ============================================
@@ -258,14 +252,18 @@ article[data-traderx-highlight="watchlist"]::after {
   width: 280px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
-  background: linear-gradient(180deg, #111827 0%, #0F172A 100%);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   z-index: 9999;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-  color: #F9FAFB;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
+
+#traderx-sidebar::-webkit-scrollbar { width: 4px; }
+#traderx-sidebar::-webkit-scrollbar-track { background: transparent; }
+#traderx-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 4px; }
 
 #traderx-sidebar.traderx-sidebar-hidden {
   display: none !important;
@@ -276,8 +274,8 @@ article[data-traderx-highlight="watchlist"]::after {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: rgba(59, 130, 246, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--accent-glow);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -297,7 +295,7 @@ article[data-traderx-highlight="watchlist"]::after {
 .traderx-logo-text {
   font-weight: 700;
   font-size: 15px;
-  color: #60A5FA;
+  color: var(--accent-bright);
 }
 
 .traderx-header-right {
@@ -308,23 +306,23 @@ article[data-traderx-highlight="watchlist"]::after {
 
 .traderx-market-status {
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .traderx-minimize {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #9CA3AF;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 14px;
 }
 
 .traderx-minimize:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .traderx-sidebar-content {
@@ -334,50 +332,50 @@ article[data-traderx-highlight="watchlist"]::after {
 /* Search Box */
 .traderx-search-box {
   padding: 14px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border);
 }
 
 .traderx-search-input-wrapper {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #1F2937;
-  border: 1px solid #374151;
-  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 10px 14px;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .traderx-search-input-wrapper:focus-within {
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .traderx-search-icon {
   font-size: 14px;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .traderx-search-input-wrapper input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #F9FAFB;
-  font-size: 14px;
+  color: var(--text-primary);
+  font-size: var(--text-base);
   outline: none;
 }
 
 .traderx-search-input-wrapper input::placeholder {
-  color: #6B7280;
+  color: var(--text-muted);
 }
 
 .traderx-search-clear {
   background: transparent;
   border: none;
-  color: #EF4444;
+  color: var(--red);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-sm);
   padding: 4px;
 }
 
@@ -387,26 +385,26 @@ article[data-traderx-highlight="watchlist"]::after {
 
 .traderx-search-status {
   margin-top: 8px;
-  font-size: 12px;
-  color: #9CA3AF;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
 .traderx-search-status.active {
-  color: #10B981;
+  color: var(--emerald);
 }
 
 .traderx-search-status.warning {
-  color: #F59E0B;
+  color: var(--amber);
 }
 
 .traderx-search-status.error {
-  color: #EF4444;
+  color: var(--red);
 }
 
 /* Quick Filters */
 .traderx-quick-filters {
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border);
 }
 
 .traderx-quick-filter-row {
@@ -417,24 +415,25 @@ article[data-traderx-highlight="watchlist"]::after {
 .traderx-quick-btn {
   flex: 1;
   padding: 8px;
-  background: #1F2937;
-  border: 1px solid #374151;
-  border-radius: 8px;
-  color: #9CA3AF;
-  font-size: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .traderx-quick-btn:hover {
-  background: #374151;
-  color: white;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
 }
 
 .traderx-quick-btn.active {
-  background: #3B82F6;
-  border-color: #3B82F6;
+  background: var(--accent);
+  border-color: var(--accent);
   color: white;
 }
 
@@ -443,26 +442,26 @@ article[data-traderx-highlight="watchlist"]::after {
   width: 100%;
   margin-top: 10px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  background: var(--gradient-accent);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   color: white;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .traderx-advanced-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
 }
 
 /* Sections */
 .traderx-section {
   padding: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border);
 }
 
 .traderx-section:last-child {
@@ -477,20 +476,21 @@ article[data-traderx-highlight="watchlist"]::after {
 }
 
 .traderx-section-title {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #9CA3AF;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .traderx-section-count {
-  background: #374151;
-  color: #9CA3AF;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
   padding: 2px 8px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
+  border: 1px solid var(--border);
 }
 
 /* Price Items */
@@ -499,8 +499,8 @@ article[data-traderx-highlight="watchlist"]::after {
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
   margin-bottom: 6px;
   cursor: pointer;
   transition: all 0.15s;
@@ -508,14 +508,14 @@ article[data-traderx-highlight="watchlist"]::after {
 }
 
 .traderx-price-item:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--accent-glow);
+  border-color: rgba(99, 102, 241, 0.2);
   transform: translateX(-2px);
 }
 
 .traderx-ticker {
   font-weight: 600;
-  color: #60A5FA;
+  color: var(--accent-bright);
   font-size: 13px;
 }
 
@@ -526,50 +526,50 @@ article[data-traderx-highlight="watchlist"]::after {
 .traderx-price-value {
   font-size: 13px;
   font-weight: 500;
-  color: #F9FAFB;
+  color: var(--text-primary);
   display: block;
 }
 
 .traderx-price-change {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
 .traderx-price-change.positive {
-  color: #10B981;
+  color: var(--emerald);
 }
 
 .traderx-price-change.negative {
-  color: #EF4444;
+  color: var(--red);
 }
 
 .traderx-price-error {
-  color: #6B7280;
+  color: var(--text-muted);
 }
 
 .traderx-no-tickers {
   text-align: center;
-  color: #6B7280;
-  font-size: 12px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
   padding: 16px;
 }
 
 .traderx-loading {
   text-align: center;
-  color: #9CA3AF;
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   padding: 16px;
 }
 
 .traderx-refresh-note {
   font-size: 10px;
-  color: #6B7280;
+  color: var(--text-muted);
   text-align: center;
   padding-top: 8px;
 }
 
 .traderx-error {
-  color: #EF4444;
+  color: var(--red);
 }
 
 /* Add Section */
@@ -585,31 +585,32 @@ article[data-traderx-highlight="watchlist"]::after {
 .traderx-add-row input {
   flex: 1;
   padding: 10px 14px;
-  background: #1F2937;
-  border: 1px solid #374151;
-  border-radius: 8px;
-  color: #F9FAFB;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   font-size: 13px;
 }
 
 .traderx-add-row input:focus {
   outline: none;
-  border-color: #3B82F6;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .traderx-add-row button {
   padding: 10px 16px;
-  background: #10B981;
+  background: var(--accent);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
 }
 
 .traderx-add-row button:hover {
-  background: #059669;
+  background: #5558E6;
 }
 
 /* Stats */
@@ -617,7 +618,7 @@ article[data-traderx-highlight="watchlist"]::after {
   display: flex;
   justify-content: space-around;
   padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .traderx-stat-item {
@@ -628,13 +629,13 @@ article[data-traderx-highlight="watchlist"]::after {
   display: block;
   font-size: 18px;
   font-weight: 700;
-  color: #60A5FA;
+  color: var(--accent-bright);
 }
 
 .traderx-stat-label {
   display: block;
   font-size: 10px;
-  color: #6B7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   margin-top: 2px;
 }
@@ -643,17 +644,17 @@ article[data-traderx-highlight="watchlist"]::after {
 .traderx-sidebar-footer {
   padding: 12px 14px;
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border);
 }
 
 .traderx-sidebar-footer a {
-  color: #9CA3AF;
+  color: var(--text-muted);
   text-decoration: none;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .traderx-sidebar-footer a:hover {
-  color: #F9FAFB;
+  color: var(--accent-bright);
 }
 
 /* ============================================

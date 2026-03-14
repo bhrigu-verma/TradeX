@@ -1,6 +1,6 @@
-// === TRADERX POPUP SCRIPT ===
+// === TRADERX PRO v4.0 — POPUP CONTROLLER ===
 
-// Get market status
+// ── Market Status ──────────────────────────────────────────────────────
 function getMarketStatus() {
     const now = new Date();
     const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
@@ -9,14 +9,14 @@ function getMarketStatus() {
     const time = hour + minute / 60;
     const day = et.getDay();
 
-    if (day === 0 || day === 6) return '😴 Closed';
-    if (time >= 4 && time < 9.5) return '🌅 Pre-Market';
-    if (time >= 9.5 && time < 16) return '📈 Market Open';
-    if (time >= 16 && time < 20) return '🌙 After Hours';
-    return '😴 Closed';
+    if (day === 0 || day === 6) return { text: 'Closed', open: false };
+    if (time >= 4 && time < 9.5) return { text: 'Pre-Market', open: true };
+    if (time >= 9.5 && time < 16) return { text: 'Market Open', open: true };
+    if (time >= 16 && time < 20) return { text: 'After Hours', open: true };
+    return { text: 'Closed', open: false };
 }
 
-// Load config
+// ── Config ─────────────────────────────────────────────────────────────
 async function getConfig() {
     return new Promise((resolve) => {
         chrome.storage.local.get(['config'], (result) => {
@@ -40,11 +40,33 @@ async function saveConfig(config) {
     });
 }
 
-// Initialize
+// ── Animate Value ──────────────────────────────────────────────────────
+function animateValue(el, target) {
+    const current = parseInt(el.textContent) || 0;
+    if (current === target) return;
+
+    const duration = 400;
+    const start = performance.now();
+
+    function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        el.textContent = Math.round(current + (target - current) * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+}
+
+// ── Initialize ─────────────────────────────────────────────────────────
 async function init() {
     const config = await getConfig();
 
-    document.getElementById('market-status').textContent = getMarketStatus();
+    // Market status
+    const market = getMarketStatus();
+    document.getElementById('market-status').textContent = market.text;
+    const dot = document.getElementById('market-dot');
+    if (!market.open) dot.classList.add('closed');
 
     // Load toggles
     document.getElementById('toggle-spam').checked = config.filters?.enableSpamFilter ?? true;
@@ -58,26 +80,27 @@ async function init() {
     setupEventListeners();
 }
 
-// Render watchlist
+// ── Render Watchlist ───────────────────────────────────────────────────
 function renderWatchlist(watchlist) {
     const container = document.getElementById('watchlist-container');
 
     if (!watchlist || watchlist.length === 0) {
-        container.innerHTML = '<div class="empty-state">No tickers yet - add one above!</div>';
+        container.innerHTML = '<div class="empty-state">No tickers yet — add one above</div>';
         return;
     }
 
     container.innerHTML = '';
-    watchlist.forEach(ticker => {
+    watchlist.forEach((ticker, i) => {
         const tag = document.createElement('div');
         tag.className = 'tag';
+        tag.style.animationDelay = `${i * 30}ms`;
         tag.innerHTML = `$${ticker} <span class="tag-remove">×</span>`;
         tag.onclick = () => removeTicker(ticker);
         container.appendChild(tag);
     });
 }
 
-// Load stats
+// ── Load Stats ─────────────────────────────────────────────────────────
 async function loadStats() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -85,9 +108,9 @@ async function loadStats() {
         if (tab && (tab.url?.includes('x.com') || tab.url?.includes('twitter.com'))) {
             chrome.tabs.sendMessage(tab.id, { action: 'getStats' }, (response) => {
                 if (response) {
-                    document.getElementById('stat-hidden').textContent = response.hiddenCount || 0;
-                    document.getElementById('stat-alerts').textContent = response.alertCount || 0;
-                    document.getElementById('stat-watchlist').textContent = response.watchlistMentions || 0;
+                    animateValue(document.getElementById('stat-hidden'), response.hiddenCount || 0);
+                    animateValue(document.getElementById('stat-alerts'), response.alertCount || 0);
+                    animateValue(document.getElementById('stat-watchlist'), response.watchlistMentions || 0);
                 }
             });
         }
@@ -96,7 +119,7 @@ async function loadStats() {
     }
 }
 
-// Setup event listeners
+// ── Event Listeners ────────────────────────────────────────────────────
 function setupEventListeners() {
     // Toggle handlers
     const toggles = [
@@ -140,6 +163,12 @@ function setupEventListeners() {
     });
 
     document.getElementById('refresh-feed').addEventListener('click', async () => {
+        const btn = document.getElementById('refresh-feed');
+        const icon = btn.querySelector('.action-icon');
+        icon.style.transition = 'transform 0.6s ease';
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(() => { icon.style.transform = ''; }, 700);
+
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tab) chrome.tabs.reload(tab.id);
     });
@@ -148,9 +177,13 @@ function setupEventListeners() {
         e.preventDefault();
         chrome.tabs.create({ url: 'alerts.html' });
     });
+
+    document.getElementById('open-dashboard').addEventListener('click', () => {
+        chrome.tabs.create({ url: 'http://localhost:3000' });
+    });
 }
 
-// Add ticker
+// ── Add Ticker ─────────────────────────────────────────────────────────
 async function addTicker() {
     const input = document.getElementById('ticker-input');
     const successMsg = document.getElementById('add-success');
@@ -158,7 +191,11 @@ async function addTicker() {
 
     if (!ticker || !/^[A-Z]{1,10}$/.test(ticker)) {
         input.style.borderColor = '#EF4444';
-        setTimeout(() => { input.style.borderColor = ''; }, 1000);
+        input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+        setTimeout(() => {
+            input.style.borderColor = '';
+            input.style.boxShadow = '';
+        }, 1200);
         return;
     }
 
@@ -170,26 +207,27 @@ async function addTicker() {
         await saveConfig(config);
         renderWatchlist(config.watchlist);
 
-        // Show success
         successMsg.textContent = `✓ $${ticker} added to watchlist!`;
         successMsg.style.display = 'block';
-        setTimeout(() => { successMsg.style.display = 'none'; }, 2000);
+        successMsg.style.background = '';
+        successMsg.style.color = '';
+        setTimeout(() => { successMsg.style.display = 'none'; }, 2500);
     } else {
         successMsg.textContent = `$${ticker} is already in watchlist`;
-        successMsg.style.background = 'rgba(251, 191, 36, 0.2)';
-        successMsg.style.color = '#FBBF24';
+        successMsg.style.background = 'rgba(245, 158, 11, 0.12)';
+        successMsg.style.color = '#F59E0B';
         successMsg.style.display = 'block';
         setTimeout(() => {
             successMsg.style.display = 'none';
             successMsg.style.background = '';
             successMsg.style.color = '';
-        }, 2000);
+        }, 2500);
     }
 
     input.value = '';
 }
 
-// Remove ticker
+// ── Remove Ticker ──────────────────────────────────────────────────────
 async function removeTicker(ticker) {
     const config = await getConfig();
     config.watchlist = (config.watchlist || []).filter(t => t !== ticker);
@@ -197,7 +235,7 @@ async function removeTicker(ticker) {
     renderWatchlist(config.watchlist);
 }
 
-// Search ticker
+// ── Search Ticker ──────────────────────────────────────────────────────
 async function searchTicker() {
     const input = document.getElementById('search-input');
     const status = document.getElementById('search-status');

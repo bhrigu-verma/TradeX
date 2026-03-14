@@ -2,7 +2,30 @@
 // API key auth for Chrome extension ↔ server sync
 
 const { getDb } = require('../../db/setup');
+const jwt = require('jsonwebtoken');
+const config = require('../../config/env');
 const logger = require('../../config/logger');
+
+function requireAuth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+
+    try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+        req.userId = decoded.userId;
+        req.userEmail = decoded.email;
+        req.userTier = decoded.tier;
+        next();
+    } catch (e) {
+        if (e.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+        }
+        return res.status(401).json({ error: 'Invalid token' });
+    }
+}
 
 function apiKeyAuth(req, res, next) {
     const key = req.headers['x-api-key'] || req.query.api_key;
@@ -34,4 +57,4 @@ function optionalAuth(req, res, next) {
     next();
 }
 
-module.exports = { apiKeyAuth, optionalAuth };
+module.exports = { requireAuth, apiKeyAuth, optionalAuth };

@@ -11,6 +11,20 @@ class AlertService {
     constructor() {
         this.previousStates = new Map(); // ticker -> last sentiment state
         this.recentInfluencerTweets = new Map(); // ticker -> [{author, timestamp}]
+        this._loadPreviousStates();
+    }
+
+    _loadPreviousStates() {
+        try {
+            const db = getDb();
+            const rows = db.prepare('SELECT key, status, sentiment FROM sentiment_states').all();
+            for (const row of rows) {
+                this.previousStates.set(row.key, { status: row.status, sentiment: row.sentiment, timestamp: Date.now() });
+            }
+            logger.info(`[AlertService] Loaded ${rows.length} sentiment states from DB`);
+        } catch (e) {
+            logger.warn(`[AlertService] Could not load sentiment states: ${e.message}`);
+        }
     }
 
     // ========================================================================
@@ -101,11 +115,16 @@ class AlertService {
         }
 
         // Update previous state
-        this.previousStates.set(`${userId}_${ticker}`, {
-            status: analysis.status,
-            sentiment: analysis.sentiment,
-            timestamp: Date.now()
-        });
+        const stateKey = `${userId}_${ticker}`;
+        const stateVal = { status: analysis.status, sentiment: analysis.sentiment, timestamp: Date.now() };
+        this.previousStates.set(stateKey, stateVal);
+        try {
+            const db = getDb();
+            db.prepare('INSERT OR REPLACE INTO sentiment_states (key, status, sentiment, updated_at) VALUES (?, ?, ?, unixepoch())')
+              .run(stateKey, analysis.status, analysis.sentiment);
+        } catch (e) {
+            logger.warn(`[AlertService] Could not persist sentiment state: ${e.message}`);
+        }
 
         return triggered;
     }
@@ -158,8 +177,8 @@ class AlertService {
     }
 
     checkSentimentFlip(ticker, analysis, conditions) {
-        const key = `${conditions.userId || ''}_${ticker}`;
-        const previous = this.previousStates.get(key) || this.previousStates.get(ticker);
+        const scopedKey = conditions.userId ? `${conditions.userId}_${ticker}` : null;
+        const previous = (scopedKey && this.previousStates.get(scopedKey)) || this.previousStates.get(ticker);
         if (!previous) return { fired: false };
 
         const prevStatus = (previous.status || '').toUpperCase();

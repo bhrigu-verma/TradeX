@@ -195,6 +195,122 @@ function setupTables(db_instance) {
       created_at       INTEGER NOT NULL DEFAULT (unixepoch())
     );
     CREATE INDEX IF NOT EXISTS idx_backtest_ticker ON backtest_results(ticker, signal_type);
+
+    -- ============================================================
+    -- SUBSCRIPTIONS (Stripe integration)
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id                      TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id                 TEXT NOT NULL UNIQUE,
+      stripe_customer_id      TEXT UNIQUE,
+      stripe_subscription_id  TEXT UNIQUE,
+      tier                    TEXT NOT NULL DEFAULT 'free',
+      billing_period          TEXT DEFAULT 'monthly',
+      trial_active            INTEGER DEFAULT 0,
+      trial_ends_at           INTEGER DEFAULT NULL,
+      current_period_start    INTEGER DEFAULT NULL,
+      current_period_end      INTEGER DEFAULT NULL,
+      cancel_at_period_end    INTEGER DEFAULT 0,
+      status                  TEXT DEFAULT 'active',
+      created_at              INTEGER NOT NULL DEFAULT (unixepoch()),
+      updated_at              INTEGER NOT NULL DEFAULT (unixepoch()),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_sub_stripe ON subscriptions(stripe_customer_id);
+    CREATE INDEX IF NOT EXISTS idx_sub_stripe_sub ON subscriptions(stripe_subscription_id);
+
+    -- ============================================================
+    -- REFRESH TOKENS (JWT auth)
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id     TEXT NOT NULL,
+      token       TEXT NOT NULL UNIQUE,
+      expires_at  INTEGER NOT NULL,
+      created_at  INTEGER NOT NULL DEFAULT (unixepoch()),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_refresh_user ON refresh_tokens(user_id);
+
+    -- ============================================================
+    -- WHALE TRANSACTIONS
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS whale_transactions (
+      id               TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      hash             TEXT UNIQUE,
+      network          TEXT NOT NULL,
+      ticker           TEXT NOT NULL,
+      amount           REAL NOT NULL,
+      amount_usd       REAL,
+      from_address     TEXT,
+      to_address       TEXT,
+      transaction_type TEXT DEFAULT 'transfer',
+      timestamp        INTEGER NOT NULL DEFAULT (unixepoch()),
+      created_at       INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+    CREATE INDEX IF NOT EXISTS idx_whale_ticker ON whale_transactions(ticker, timestamp);
+    CREATE INDEX IF NOT EXISTS idx_whale_type ON whale_transactions(transaction_type);
+
+    -- ============================================================
+    -- TRADE IDEAS (AI Copilot)
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS trade_ideas (
+      id              TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id         TEXT,
+      ticker          TEXT NOT NULL,
+      direction       TEXT NOT NULL,
+      confidence      INTEGER NOT NULL,
+      entry_price     REAL,
+      stop_loss       REAL,
+      target_price    REAL,
+      risk_reward     REAL,
+      reasoning       TEXT,
+      status          TEXT DEFAULT 'active',
+      outcome         TEXT DEFAULT NULL,
+      actual_pnl      REAL DEFAULT NULL,
+      created_at      INTEGER NOT NULL DEFAULT (unixepoch()),
+      closed_at       INTEGER DEFAULT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_ideas_ticker ON trade_ideas(ticker, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ideas_user ON trade_ideas(user_id);
+
+    -- ============================================================
+    -- USAGE METRICS
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS usage_metrics (
+      id           TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id      TEXT NOT NULL,
+      metric_type  TEXT NOT NULL,
+      value        INTEGER NOT NULL DEFAULT 1,
+      period_start TEXT NOT NULL,
+      period_end   TEXT NOT NULL,
+      created_at   INTEGER NOT NULL DEFAULT (unixepoch()),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_metrics(user_id, metric_type, period_start);
+
+    -- ============================================================
+    -- ANALYTICS EVENTS
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS analytics_events (
+      id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id     TEXT,
+      event_name  TEXT NOT NULL,
+      properties  TEXT DEFAULT '{}',
+      created_at  INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+    CREATE INDEX IF NOT EXISTS idx_analytics_event ON analytics_events(event_name, created_at);
+
+    -- ============================================================
+    -- SENTIMENT STATES (persists previousStates across restarts)
+    -- ============================================================
+    CREATE TABLE IF NOT EXISTS sentiment_states (
+      key        TEXT PRIMARY KEY,
+      status     TEXT,
+      sentiment  REAL,
+      updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+    );
   `);
 
     console.log(`[DB] Tables ready at ${DB_PATH}`);

@@ -1,14 +1,9 @@
 {
   "manifest_version": 3,
   "name": "TraderX Pro",
-  "version": "3.0.0",
-  "description": "Professional trading assistant: ML sentiment analysis, real-time prices, influencer weighting, combo alerts, portfolio tracking, and noise filtering",
-  "permissions": [
-    "storage",
-    "notifications",
-    "tabs",
-    "scripting"
-  ],
+  "version": "1.0.0",
+  "description": "AI-powered trading platform: ML sentiment analysis, AI trade copilot, whale tracker, premium features, real-time prices, portfolio tracking, and institutional-grade analytics",
+  "permissions": ["storage", "notifications", "tabs", "scripting"],
   "host_permissions": [
     "https://x.com/*",
     "https://twitter.com/*",
@@ -35,16 +30,16 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://x.com/*",
-        "https://twitter.com/*"
-      ],
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
       "js": [
         "suggested.js",
         "utils.js",
         "content/priceFetcher.js",
         "content/analysisEngine.js",
         "content/twitterFetcher.js",
+        "content/premiumSystem.js",
+        "content/aiCopilot.js",
+        "content/whaleTracker.js",
         "content/comboAlerts.js",
         "content/portfolioTracker.js",
         "content/sectorHeatmap.js",
@@ -55,22 +50,14 @@
         "content/sidebar.js",
         "content/content.js"
       ],
-      "css": [
-        "content/content.css"
-      ],
+      "css": ["content/content.css"],
       "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "accounts.json",
-        "content/finbert-worker.js"
-      ],
-      "matches": [
-        "https://x.com/*",
-        "https://twitter.com/*"
-      ]
+      "resources": ["accounts.json", "content/finbert-worker.js"],
+      "matches": ["https://x.com/*", "https://twitter.com/*"]
     }
   ],
   "content_security_policy": {

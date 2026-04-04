@@ -10,7 +10,7 @@ const footerLinks = [
     links: [
       { label: 'Features', href: '/features' },
       { label: 'Pricing', href: '/pricing' },
-      { label: 'How It Works', href: '/guide' },
+      { label: 'How It Works', href: '/how-it-works' },
       { label: 'Changelog', href: '/changelog' },
     ],
   },
@@ -69,7 +69,7 @@ export default function MarketingFooter() {
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} TraderX Pro. All rights reserved.</span>
           <span className="footer-bottom-right">
-            Built with ❤️ for traders worldwide
+            Built by Bhrigu Verma · <a href="https://www.linkedin.com/in/bhrigu-verma-89090a273/" target="_blank" rel="noopener noreferrer">LinkedIn</a> · <a href="https://github.com/bhrigu-verma" target="_blank" rel="noopener noreferrer">GitHub</a>
           </span>
         </div>
       </div>

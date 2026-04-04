@@ -22,7 +22,7 @@ const features = [
       'Risk/Reward filtering (minimum 2:1 R:R ratio)',
       'Real-time idea generation as market conditions evolve',
     ],
-    color: '#818CF8',
+    color: '#34D399',
     direction: 'left',
   },
   {
@@ -38,7 +38,7 @@ const features = [
       'Custom wallet watchlists for tracking specific whales',
       'Flow sentiment scoring combined with social signals',
     ],
-    color: '#22D3EE',
+    color: '#2DD4BF',
     direction: 'right',
   },
   {
@@ -54,7 +54,7 @@ const features = [
       'Engagement-weighted scoring (likes, retweets, replies)',
       'Sector-level heat mapping across your entire watchlist',
     ],
-    color: '#F472B6',
+    color: '#10B981',
     direction: 'left',
   },
   {
@@ -70,7 +70,7 @@ const features = [
       'AI-ready prompt formatter for ChatGPT/Claude analysis',
       'Real-time count display and one-click stop button',
     ],
-    color: '#4ADE80',
+    color: '#22C55E',
     direction: 'right',
   },
   {
@@ -86,7 +86,7 @@ const features = [
       'Sentiment flip detection (bearish to bullish transitions)',
       'Multi-channel delivery: Telegram, Discord, webhooks',
     ],
-    color: '#FBBF24',
+    color: '#F59E0B',
     direction: 'left',
   },
   {
@@ -102,7 +102,7 @@ const features = [
       'REST API access for algorithmic strategies',
       'Webhook delivery for custom integrations',
     ],
-    color: '#A78BFA',
+    color: '#059669',
     direction: 'right',
   },
 ];

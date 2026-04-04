@@ -13,7 +13,7 @@ const releases = [
     version: 'v1.0.0',
     date: 'March 2026',
     tag: 'Initial Public Release',
-    tagColor: '#6366F1',
+    tagColor: '#10B981',
     changes: [
       { type: 'feature', text: 'AI Trading Copilot with multi-factor trade idea generation' },
       { type: 'feature', text: 'Whale Flow Intelligence — real-time large transaction tracking' },
@@ -31,7 +31,7 @@ const releases = [
     version: 'v3.5.0',
     date: 'December 2024',
     tag: 'Feature Update',
-    tagColor: '#8B5CF6',
+    tagColor: '#14B8A6',
     changes: [
       { type: 'feature', text: 'Combo alerts — multi-signal combination triggers' },
       { type: 'feature', text: 'Sector heatmap for watchlist-level sentiment view' },
@@ -44,7 +44,7 @@ const releases = [
     version: 'v3.0.0',
     date: 'November 2024',
     tag: 'Major Release',
-    tagColor: '#6366F1',
+    tagColor: '#10B981',
     changes: [
       { type: 'feature', text: 'Telegram bot with 15+ slash commands' },
       { type: 'feature', text: 'Portfolio tracker with real-time P&L' },
@@ -57,7 +57,7 @@ const releases = [
     version: 'v2.0.0',
     date: 'October 2024',
     tag: 'Major Release',
-    tagColor: '#6366F1',
+    tagColor: '#10B981',
     changes: [
       { type: 'feature', text: 'Backend API server with SQLite database' },
       { type: 'feature', text: 'Sentiment aggregation with influencer weighting' },
@@ -69,7 +69,7 @@ const releases = [
 
 const typeConfig = {
   feature: { color: '#10B981', bg: 'rgba(16,185,129,0.12)', label: 'New', icon: Sparkles },
-  improvement: { color: '#6366F1', bg: 'rgba(99,102,241,0.12)', label: 'Improved', icon: ArrowUp },
+  improvement: { color: '#10B981', bg: 'rgba(16,185,129,0.12)', label: 'Improved', icon: ArrowUp },
   fix: { color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', label: 'Fixed', icon: Bug },
 };
 
@@ -111,8 +111,8 @@ export default function ChangelogClient() {
                   padding: '8px 16px', borderRadius: 8, border: 'none',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer',
                   textTransform: 'capitalize',
-                  background: filter === f ? 'rgba(99,102,241,0.2)' : 'transparent',
-                  color: filter === f ? '#A5B4FC' : 'rgba(255,255,255,0.4)',
+                  background: filter === f ? 'rgba(16,185,129,0.2)' : 'transparent',
+                  color: filter === f ? '#6EE7B7' : 'rgba(255,255,255,0.4)',
                   transition: 'all 0.2s',
                 }}
               >
@@ -129,7 +129,7 @@ export default function ChangelogClient() {
           {/* Vertical line */}
           <div style={{
             position: 'absolute', left: 20, top: 0, bottom: 0, width: 2,
-            background: 'linear-gradient(180deg, rgba(99,102,241,0.3) 0%, rgba(99,102,241,0.05) 100%)',
+            background: 'linear-gradient(180deg, rgba(16,185,129,0.3) 0%, rgba(16,185,129,0.05) 100%)',
           }} />
 
           <StaggerContainer>

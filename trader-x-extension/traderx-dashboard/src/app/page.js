@@ -1,5 +1,3 @@
-import Navbar from '@/components/marketing/Navbar';
-import MarketingFooter from '@/components/marketing/Footer';
 import HomeClient from './HomeClient';
 
 export const metadata = {
@@ -9,12 +7,8 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <div className="mi-app-shell">
-      <Navbar />
-      <main>
-        <HomeClient />
-      </main>
-      <MarketingFooter />
-    </div>
+    <main>
+      <HomeClient />
+    </main>
   );
 }

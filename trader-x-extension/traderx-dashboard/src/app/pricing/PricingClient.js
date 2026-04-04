@@ -136,7 +136,7 @@ export default function PricingClient() {
               <GlassCard
                 hover
                 glow={tier.featured}
-                glowColor="rgba(99, 102, 241, 0.2)"
+                glowColor="rgba(16, 185, 129, 0.2)"
                 padding="0"
                 className={tier.featured ? 'featured-card' : ''}
               >
@@ -288,7 +288,7 @@ export default function PricingClient() {
         }
         .toggle-thumb {
           width: 20px; height: 20px;
-          background: linear-gradient(135deg, #6366F1, #8B5CF6);
+          background: linear-gradient(135deg, #10B981, #14B8A6);
           border-radius: 50%;
         }
         .save-tag {
@@ -308,11 +308,11 @@ export default function PricingClient() {
           align-items: stretch;
         }
         .pricing-card-inner { padding: 36px 28px; height: 100%; display: flex; flex-direction: column; }
-        .featured-card { border-color: rgba(99,102,241,0.4) !important; }
+        .featured-card { border-color: rgba(16,185,129,0.4) !important; }
         .pricing-badge-wrap { margin-bottom: 16px; }
         .pricing-badge {
           display: inline-flex; align-items: center; gap: 6px;
-          background: linear-gradient(135deg, #6366F1, #8B5CF6);
+          background: linear-gradient(135deg, #10B981, #14B8A6);
           color: white; padding: 5px 14px; border-radius: 8px;
           font-size: 12px; font-weight: 700;
         }
@@ -343,13 +343,13 @@ export default function PricingClient() {
           border-bottom: 1px solid rgba(255,255,255,0.08);
           text-transform: uppercase; letter-spacing: 0.05em;
         }
-        .th-featured { color: #A5B4FC; }
+        .th-featured { color: #6EE7B7; }
         .comparison-table td {
           padding: 14px 16px; font-size: 14px;
           color: rgba(255,255,255,0.6);
           border-bottom: 1px solid rgba(255,255,255,0.04);
         }
-        .td-featured { background: rgba(99,102,241,0.04); }
+        .td-featured { background: rgba(16,185,129,0.04); }
         .feature-name-cell { font-weight: 500; color: rgba(255,255,255,0.75); }
         .comp-check { color: #4ADE80; }
         .comp-dash { color: rgba(255,255,255,0.15); }
@@ -365,7 +365,7 @@ export default function PricingClient() {
           border-radius: 14px; overflow: hidden;
           transition: border-color 0.2s;
         }
-        .faq-open { border-color: rgba(99,102,241,0.3); }
+        .faq-open { border-color: rgba(16,185,129,0.3); }
         .faq-question {
           width: 100%; display: flex; align-items: center;
           justify-content: space-between;

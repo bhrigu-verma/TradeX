@@ -115,15 +115,15 @@ export default function PrivacyClient() {
                         whileHover={{ rotate: 10, scale: 1.1 }}
                         style={{
                           width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-                          background: 'rgba(99,102,241,0.1)',
+                          background: 'rgba(16,185,129,0.1)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >
-                        <Icon size={18} color="#A5B4FC" />
+                        <Icon size={18} color="#6EE7B7" />
                       </motion.div>
                       <div style={{ flex: 1 }}>
                         <h2 style={{
-                          fontSize: 16, fontWeight: 700, color: '#A5B4FC',
+                          fontSize: 16, fontWeight: 700, color: '#6EE7B7',
                           marginBottom: 10,
                         }}>
                           {section.title}
@@ -136,7 +136,7 @@ export default function PrivacyClient() {
                             {section.link ? (
                               <>
                                 For privacy-related inquiries, contact us at{' '}
-                                <a href={section.link.href} style={{ color: '#A5B4FC', textDecoration: 'none' }}>
+                                <a href={section.link.href} style={{ color: '#6EE7B7', textDecoration: 'none' }}>
                                   {section.link.text}
                                 </a>.
                               </>
@@ -165,7 +165,7 @@ export default function PrivacyClient() {
                               >
                                 <span style={{
                                   width: 6, height: 6, borderRadius: '50%',
-                                  background: '#6366F1', flexShrink: 0, marginTop: 7,
+                                  background: '#10B981', flexShrink: 0, marginTop: 7,
                                 }} />
                                 {item}
                               </motion.li>

@@ -16,8 +16,8 @@ import GlowButton from '@/components/ui/GlowButton';
 // TABS
 // ============================================================================
 const tabs = [
-  { id: 'chrome', label: 'Chrome Web Store', icon: Chrome, color: '#4285F4' },
-  { id: 'telegram', label: 'Telegram Bot', icon: Send, color: '#0EA5E9' },
+  { id: 'chrome', label: 'Chrome Web Store', icon: Chrome, color: '#10B981' },
+  { id: 'telegram', label: 'Telegram Bot', icon: Send, color: '#14B8A6' },
   { id: 'server', label: 'Server Deploy', icon: Server, color: '#10B981' },
   { id: 'quickstart', label: 'Quick Start', icon: Zap, color: '#F59E0B' },
 ];
@@ -465,7 +465,7 @@ export default function LaunchClient() {
             <TabContent key="chrome">
               <TabHeader
                 icon={Chrome}
-                color="#4285F4"
+                color="#10B981"
                 title="Publish to Chrome Web Store"
                 subtitle="Get your extension in front of millions. One-time $5 fee, then free forever."
               />
@@ -479,7 +479,7 @@ export default function LaunchClient() {
             <TabContent key="telegram">
               <TabHeader
                 icon={Send}
-                color="#0EA5E9"
+                color="#14B8A6"
                 title="Set Up Your Telegram Bot"
                 subtitle="Literally 2 clicks: create bot with BotFather, run the setup script. That's it."
               />
@@ -616,23 +616,23 @@ function TwoClickBanner() {
     <FadeIn delay={0.1}>
       <div style={{
         padding: '20px 24px', borderRadius: 14, marginBottom: 32,
-        background: 'linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(99,102,241,0.1) 100%)',
-        border: '1px solid rgba(14,165,233,0.2)',
+        background: 'linear-gradient(135deg, rgba(20,184,166,0.12) 0%, rgba(16,185,129,0.1) 100%)',
+        border: '1px solid rgba(20,184,166,0.24)',
         display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-          <Zap size={20} color="#0EA5E9" />
+          <Zap size={20} color="#14B8A6" />
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>2-Click Setup</div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-              <strong style={{ color: '#0EA5E9' }}>Click 1:</strong> Tell @BotFather to /newbot →
-              <strong style={{ color: '#0EA5E9' }}> Click 2:</strong> Run ./setup.sh and paste token
+              <strong style={{ color: '#14B8A6' }}>Click 1:</strong> Tell @BotFather to /newbot →
+              <strong style={{ color: '#14B8A6' }}> Click 2:</strong> Run ./setup.sh and paste token
             </div>
           </div>
         </div>
         <div style={{
           padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-          background: 'rgba(14,165,233,0.2)', color: '#0EA5E9',
+          background: 'rgba(20,184,166,0.2)', color: '#14B8A6',
         }}>
           ~3 minutes total
         </div>
@@ -661,15 +661,15 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
           >
             <div style={{
               width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-              background: 'rgba(99,102,241,0.1)',
+              background: 'rgba(16,185,129,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Icon size={20} color="#A5B4FC" />
+              <Icon size={20} color="#6EE7B7" />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 800, color: '#6366F1',
+                  fontSize: 11, fontWeight: 800, color: '#10B981',
                   fontFamily: 'monospace',
                 }}>{step.number}</span>
                 <span style={{ fontSize: 15, fontWeight: 700 }}>{step.title}</span>
@@ -704,7 +704,7 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                       }}>
                         <span style={{
                           width: 6, height: 6, borderRadius: '50%',
-                          background: '#6366F1', flexShrink: 0, marginTop: 7,
+                          background: '#10B981', flexShrink: 0, marginTop: 7,
                         }} />
                         {item}
                       </li>
@@ -719,7 +719,7 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                       rel="noopener noreferrer"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6,
-                        fontSize: 13, fontWeight: 600, color: '#A5B4FC',
+                        fontSize: 13, fontWeight: 600, color: '#6EE7B7',
                         textDecoration: 'none', marginBottom: 16,
                       }}
                     >
@@ -752,7 +752,7 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                                 </span>
                               )}
                               {p.free && (
-                                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(99,102,241,0.15)', color: '#A5B4FC', fontWeight: 600 }}>
+                                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(16,185,129,0.15)', color: '#6EE7B7', fontWeight: 600 }}>
                                   FREE TIER
                                 </span>
                               )}
@@ -776,7 +776,7 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                       </div>
                       {step.checklist.map((c, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', fontSize: 13 }}>
-                          <CheckCircle size={14} color="#6366F1" />
+                          <CheckCircle size={14} color="#10B981" />
                           <span style={{ color: 'rgba(255,255,255,0.6)' }}>{c.item}</span>
                           <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>{c.file}</span>
                         </div>
@@ -788,9 +788,9 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                   {step.visual && (
                     <div style={{
                       padding: '16px', borderRadius: 10, marginBottom: 16,
-                      background: 'rgba(14,165,233,0.05)', border: '1px solid rgba(14,165,233,0.15)',
+                      background: 'rgba(20,184,166,0.08)', border: '1px solid rgba(20,184,166,0.18)',
                     }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#0EA5E9', marginBottom: 10, textTransform: 'uppercase' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#14B8A6', marginBottom: 10, textTransform: 'uppercase' }}>
                         {step.visual.title}
                       </div>
                       <div style={{ fontFamily: 'monospace', fontSize: 12, lineHeight: 1.8, color: 'rgba(255,255,255,0.5)' }}>
@@ -853,7 +853,7 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                           <div key={i} style={{ display: 'flex', gap: 10, fontSize: 12 }}>
                             <code style={{
                               padding: '2px 8px', borderRadius: 4, flexShrink: 0,
-                              background: 'rgba(255,255,255,0.06)', color: '#A5B4FC',
+                              background: 'rgba(255,255,255,0.06)', color: '#6EE7B7',
                               fontFamily: 'monospace', fontSize: 11,
                             }}>{item.perm}</code>
                             <span style={{ color: 'rgba(255,255,255,0.5)' }}>{item.reason}</span>
@@ -867,12 +867,12 @@ function StepCard({ step, index, copyToClipboard, copiedText }) {
                   {step.tip && (
                     <div style={{
                       padding: '12px 16px', borderRadius: 10,
-                      background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.12)',
+                      background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)',
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                     }}>
-                      <Zap size={14} color="#A5B4FC" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <Zap size={14} color="#6EE7B7" style={{ flexShrink: 0, marginTop: 1 }} />
                       <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                        <strong style={{ color: '#A5B4FC' }}>Tip:</strong> {step.tip}
+                        <strong style={{ color: '#6EE7B7' }}>Tip:</strong> {step.tip}
                       </span>
                     </div>
                   )}

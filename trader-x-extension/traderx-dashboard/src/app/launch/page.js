@@ -9,12 +9,7 @@ export const metadata = {
 
 export default function LaunchPage() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(180deg, #050510 0%, #0a0a1a 30%, #0d0d20 60%, #050510 100%)',
-      color: 'white',
-      fontFamily: "'Inter', 'Outfit', system-ui, sans-serif",
-    }}>
+    <div className="marketing-shell">
       <Navbar />
       <LaunchClient />
       <MarketingFooter />

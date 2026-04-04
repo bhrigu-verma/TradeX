@@ -10,7 +10,7 @@ const platforms = [
     description: communityLinks.telegram.description,
     href: communityLinks.telegram.href,
     buttonLabel: communityLinks.telegram.label,
-    color: '#0088cc',
+    color: '#14B8A6',
     features: [
       'Real-time signal drops from the TraderX system',
       'Product announcements and patch notes',
@@ -25,7 +25,7 @@ const platforms = [
     description: communityLinks.discord.description,
     href: communityLinks.discord.href,
     buttonLabel: communityLinks.discord.label,
-    color: '#5865F2',
+    color: '#10B981',
     features: [
       'Interactive discussions with other traders',
       'Support channels for setup and configuration',
@@ -41,7 +41,7 @@ const platforms = [
     description: communityLinks.x.description,
     href: communityLinks.x.href,
     buttonLabel: communityLinks.x.label,
-    color: '#1DA1F2',
+    color: '#14B8A6',
     features: [
       'Launch updates and feature demos',
       'Public signal previews and market commentary',
@@ -93,7 +93,7 @@ export default function CommunityContent() {
       <style jsx>{`
         .community-page { padding: 60px 24px 80px; max-width: 1100px; margin: 0 auto; }
         .community-hero { text-align: center; margin-bottom: 50px; }
-        .hero-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #A5B4FC; }
+        .hero-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #6EE7B7; }
         .community-hero h1 { font-size: clamp(24px, 3.5vw, 36px); font-weight: 800; margin: 0 0 8px; }
         .community-hero p { font-size: 15px; color: rgba(255,255,255,0.5); max-width: 500px; margin: 0 auto; }
         .platforms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 60px; }
@@ -116,7 +116,7 @@ export default function CommunityContent() {
         .platform-btn:hover { opacity: 0.85; }
         .community-cta {
           text-align: center; padding: 40px; border-radius: 16px;
-          background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15);
+          background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15);
         }
         .community-cta h3 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
         .community-cta p { font-size: 14px; color: rgba(255,255,255,0.5); max-width: 500px; margin: 0 auto; }

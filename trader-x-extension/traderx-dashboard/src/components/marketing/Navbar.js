@@ -7,7 +7,7 @@ import { Menu, X, Zap, ArrowRight } from 'lucide-react';
 const navLinks = [
   { label: 'Features', href: '/features' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'How It Works', href: '/guide' },
+  { label: 'How It Works', href: '/how-it-works' },
   { label: 'Community', href: '/community' },
   { label: 'Docs', href: '/docs' },
   { label: 'Launch', href: '/launch' },

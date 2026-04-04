@@ -15,7 +15,7 @@ const channels = [
     description: 'For general inquiries and technical support',
     link: 'mailto:support@traderx.app',
     linkText: 'support@traderx.app',
-    color: '#6366F1',
+    color: '#10B981',
   },
   {
     icon: Mail,
@@ -23,7 +23,7 @@ const channels = [
     description: 'Enterprise plans, custom integrations, and partnerships',
     link: 'mailto:sales@traderx.app',
     linkText: 'sales@traderx.app',
-    color: '#8B5CF6',
+    color: '#14B8A6',
   },
   {
     icon: MessageCircle,
@@ -32,7 +32,7 @@ const channels = [
     link: 'https://discord.gg/traderx',
     linkText: 'Join Discord →',
     external: true,
-    color: '#5865F2',
+    color: '#10B981',
   },
   {
     icon: Send,
@@ -41,7 +41,7 @@ const channels = [
     link: 'https://t.me/traderx',
     linkText: 'Open Telegram →',
     external: true,
-    color: '#0EA5E9',
+    color: '#14B8A6',
   },
 ];
 
@@ -128,10 +128,10 @@ export default function ContactClient() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10,
-                  background: 'rgba(99,102,241,0.15)',
+                  background: 'rgba(16,185,129,0.15)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <HelpCircle size={18} color="#A5B4FC" />
+                  <HelpCircle size={18} color="#6EE7B7" />
                 </div>
                 <h2 style={{ fontSize: 18, fontWeight: 700 }}>Send a Message</h2>
               </div>
@@ -269,12 +269,12 @@ export default function ContactClient() {
                     {/* Submit */}
                     <motion.button
                       type="submit"
-                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(99,102,241,0.3)' }}
+                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(16,185,129,0.3)' }}
                       whileTap={{ scale: 0.98 }}
                       style={{
                         width: '100%', padding: '14px', borderRadius: 12, border: 'none',
                         fontSize: 15, fontWeight: 700, color: 'white', cursor: 'pointer',
-                        background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                        background: 'linear-gradient(135deg, #10B981, #14B8A6)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         marginTop: 8,
                       }}
@@ -293,11 +293,11 @@ export default function ContactClient() {
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             marginTop: 24, padding: '12px 20px', borderRadius: 12,
-            background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.1)',
+            background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.1)',
           }}>
-            <Zap size={14} color="#A5B4FC" />
+            <Zap size={14} color="#6EE7B7" />
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-              Average response time: <strong style={{ color: '#A5B4FC' }}>under 4 hours</strong> during business days
+              Average response time: <strong style={{ color: '#6EE7B7' }}>under 4 hours</strong> during business days
             </span>
           </div>
         </FadeIn>
@@ -322,7 +322,7 @@ function FormField({ label, children, focused }) {
     >
       <label style={{
         display: 'block', fontSize: 12, fontWeight: 600,
-        color: focused ? '#A5B4FC' : 'rgba(255,255,255,0.45)',
+        color: focused ? '#6EE7B7' : 'rgba(255,255,255,0.45)',
         marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
         transition: 'color 0.15s',
       }}>
@@ -337,7 +337,7 @@ function inputStyle(focused) {
   return {
     width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14,
     background: focused ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
-    border: `1px solid ${focused ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.08)'}`,
+    border: `1px solid ${focused ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.08)'}`,
     color: 'white', outline: 'none', fontFamily: 'inherit',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',

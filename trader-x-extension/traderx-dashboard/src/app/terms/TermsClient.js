@@ -122,7 +122,7 @@ export default function TermsClient() {
                     textDecoration: 'none', padding: '4px 0',
                     transition: 'color 0.15s', cursor: 'pointer',
                   }}
-                  onMouseEnter={(e) => e.target.style.color = '#A5B4FC'}
+                  onMouseEnter={(e) => e.target.style.color = '#6EE7B7'}
                   onMouseLeave={(e) => e.target.style.color = 'rgba(255,255,255,0.5)'}
                 >
                   {s.title}
@@ -157,10 +157,10 @@ export default function TermsClient() {
                 >
                   <div style={{
                     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: section.highlight ? 'rgba(245,158,11,0.12)' : 'rgba(99,102,241,0.1)',
+                    background: section.highlight ? 'rgba(245,158,11,0.12)' : 'rgba(16,185,129,0.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Icon size={16} color={section.highlight ? '#F59E0B' : '#A5B4FC'} />
+                    <Icon size={16} color={section.highlight ? '#F59E0B' : '#6EE7B7'} />
                   </div>
                   <span style={{ fontSize: 15, fontWeight: 600, color: 'white', flex: 1 }}>
                     {section.title}
@@ -199,7 +199,7 @@ export default function TermsClient() {
                             {section.link ? (
                               <>
                                 For questions about these terms, contact{' '}
-                                <a href={section.link.href} style={{ color: '#A5B4FC', textDecoration: 'none' }}>
+                                <a href={section.link.href} style={{ color: '#6EE7B7', textDecoration: 'none' }}>
                                   {section.link.text}
                                 </a>.
                               </>
@@ -224,7 +224,7 @@ export default function TermsClient() {
                               >
                                 <span style={{
                                   width: 6, height: 6, borderRadius: '50%',
-                                  background: '#6366F1', flexShrink: 0, marginTop: 7,
+                                  background: '#10B981', flexShrink: 0, marginTop: 7,
                                 }} />
                                 {item}
                               </motion.li>

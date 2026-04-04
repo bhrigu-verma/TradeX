@@ -24,7 +24,7 @@ const steps = [
       'Lightweight — under 2MB total footprint',
     ],
     icon: <Chrome size={28} />,
-    color: '#818CF8',
+    color: '#34D399',
   },
   {
     num: '02',
@@ -37,7 +37,7 @@ const steps = [
       'Data starts flowing immediately',
     ],
     icon: <Eye size={28} />,
-    color: '#22D3EE',
+    color: '#2DD4BF',
   },
   {
     num: '03',
@@ -50,7 +50,7 @@ const steps = [
       'Set confidence thresholds to reduce noise',
     ],
     icon: <Bell size={28} />,
-    color: '#FBBF24',
+    color: '#F59E0B',
   },
   {
     num: '04',
@@ -63,7 +63,7 @@ const steps = [
       'Whale tracker highlights smart money moves',
     ],
     icon: <Download size={28} />,
-    color: '#4ADE80',
+    color: '#22C55E',
   },
   {
     num: '05',
@@ -76,7 +76,7 @@ const steps = [
       'Historical win rate tracking',
     ],
     icon: <Sparkles size={28} />,
-    color: '#F472B6',
+    color: '#10B981',
   },
 ];
 
@@ -220,7 +220,7 @@ export default function GuideClient() {
           position: absolute;
           left: 28px; top: 0;
           width: 3px;
-          background: linear-gradient(180deg, #6366F1, #8B5CF6, #4ADE80);
+          background: linear-gradient(180deg, #10B981, #14B8A6, #4ADE80);
           border-radius: 2px;
           z-index: 1;
         }
@@ -277,10 +277,10 @@ export default function GuideClient() {
         }
         .tip-icon {
           width: 48px; height: 48px;
-          background: rgba(99,102,241,0.12);
+          background: rgba(16,185,129,0.12);
           border-radius: 14px;
           display: flex; align-items: center; justify-content: center;
-          color: #A5B4FC; margin-bottom: 16px;
+          color: #6EE7B7; margin-bottom: 16px;
         }
         .tip-title { font-size: 16px; font-weight: 700; color: white; margin: 0 0 8px; }
         .tip-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; margin: 0; }

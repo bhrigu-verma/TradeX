@@ -1,1731 +1,816 @@
 'use client';
 
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 
-import { useEffect } from 'react';
-
-const BADGE_PHRASES = [
-  'Initializing FinBERT Engine...',
-  'Connecting to X.com DOM...',
-  'Loading 988 Institutional Accounts...',
-  'System Ready. Awaiting Signals.',
-];
-
 export default function HomeClient() {
-  useEffect(() => {
-    const root = document.documentElement;
+    const spotlightRef = useRef(null);
+    const typingBadgeRef = useRef(null);
+    const scrambleTargetRef = useRef(null);
+    const canvasRef = useRef(null);
 
-    const onMouseMove = (e) => {
-      root.style.setProperty('--mouse-x', `${e.clientX}px`);
-      root.style.setProperty('--mouse-y', `${e.clientY}px`);
+    useEffect(() => {
+        // 1. Global Mouse Spotlight Tracking
+        const handleMouseMove = (e) => {
+            const root = document.documentElement;
+            root.style.setProperty('--mouse-x', `${e.clientX}px`);
+            root.style.setProperty('--mouse-y', `${e.clientY}px`);
 
-      const cards = document.querySelectorAll('.tx-spotlight-card');
-      cards.forEach((card) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--card-mouse-x', `${e.clientX - rect.left}px`);
-        card.style.setProperty('--card-mouse-y', `${e.clientY - rect.top}px`);
-      });
-    };
+            document.querySelectorAll('.spotlight-card').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--card-mouse-x', `${x}px`);
+                card.style.setProperty('--card-mouse-y', `${y}px`);
+            });
+        };
+        document.addEventListener('mousemove', handleMouseMove);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return;
-          }
+        // 2. Intersection Observer (Scroll Reveal)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -10% 0px',
+            threshold: 0.1
+        };
 
-          entry.target.classList.add('active');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    if (entry.target.classList.contains('step-item')) {
+                        const icon = entry.target.querySelector('.step-icon');
+                        const svg = entry.target.querySelector('.step-svg');
+                        if (icon && svg) {
+                            setTimeout(() => {
+                                icon.classList.add('border-emerald', 'bg-emerald/10');
+                                icon.classList.remove('border-gray-800', 'bg-obsidian');
+                                svg.setAttribute('stroke', '#10B981');
+                            }, 300);
+                        }
+                    }
+                }
+            });
+        }, observerOptions);
 
-          if (entry.target.classList.contains('tx-step-item')) {
-            const icon = entry.target.querySelector('.tx-step-icon');
-            const iconSvg = entry.target.querySelector('.tx-step-svg');
-            if (icon) {
-              icon.classList.add('is-active');
-            }
-            if (iconSvg) {
-              iconSvg.classList.add('is-active');
-            }
-          }
-        });
-      },
-      { root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.1 }
-    );
-
-    const revealNodes = document.querySelectorAll('.tx-reveal');
-    revealNodes.forEach((node) => observer.observe(node));
-
-    const onScroll = () => {
-      const timeline = document.querySelector('.tx-timeline-container');
-      if (!timeline) {
-        return;
-      }
-
-      const rect = timeline.getBoundingClientRect();
-      const vh = window.innerHeight;
-      let progress = 0;
-      if (rect.top < vh / 2) {
-        progress = Math.min(100, Math.max(0, ((vh / 2 - rect.top) / rect.height) * 100));
-      }
-      root.style.setProperty('--scroll-progress', `${progress}%`);
-    };
-
-    let phraseIndex = 0;
-    const badge = document.getElementById('tx-typing-badge');
-    const badgeInterval = window.setInterval(() => {
-      if (!badge) {
-        return;
-      }
-
-      phraseIndex = (phraseIndex + 1) % BADGE_PHRASES.length;
-      badge.style.opacity = '0';
-      window.setTimeout(() => {
-        badge.textContent = BADGE_PHRASES[phraseIndex];
-        badge.style.opacity = '1';
-      }, 400);
-    }, 4000);
-
-    class TextScramble {
-      constructor(el) {
-        this.el = el;
-        this.chars = '01#X$!<>-_\\/[]{}=+*^?';
-        this.update = this.update.bind(this);
-      }
-
-      setText(newText) {
-        const oldText = this.el.textContent || '';
-        const length = Math.max(oldText.length, newText.length);
-        const promise = new Promise((resolve) => {
-          this.resolve = resolve;
+        document.querySelectorAll('.reveal').forEach((el) => {
+            observer.observe(el);
         });
 
-        this.queue = [];
-        for (let i = 0; i < length; i += 1) {
-          const from = oldText[i] || '';
-          const to = newText[i] || '';
-          const start = Math.floor(Math.random() * 40);
-          const end = start + Math.floor(Math.random() * 40);
-          this.queue.push({ from, to, start, end, char: '' });
-        }
-
-        window.cancelAnimationFrame(this.frameRequest);
-        this.frame = 0;
-        this.update();
-        return promise;
-      }
-
-      update() {
-        let output = '';
-        let complete = 0;
-
-        for (let i = 0; i < this.queue.length; i += 1) {
-          let { from, to, start, end, char } = this.queue[i];
-          if (this.frame >= end) {
-            complete += 1;
-            output += to;
-          } else if (this.frame >= start) {
-            if (!char || Math.random() < 0.28) {
-              char = this.chars[Math.floor(Math.random() * this.chars.length)];
-              this.queue[i].char = char;
+        const handleScroll = () => {
+            const timeline = document.querySelector('.timeline-container');
+            if (timeline) {
+                const rect = timeline.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                let progress = 0;
+                if (rect.top < windowHeight / 2) {
+                    progress = Math.min(100, Math.max(0, ((windowHeight / 2 - rect.top) / rect.height) * 100));
+                }
+                document.documentElement.style.setProperty('--scroll-progress', `${progress}%`);
             }
-            output += `<span class="tx-scramble-char">${char}</span>`;
-          } else {
-            output += from;
-          }
+        };
+        window.addEventListener('scroll', handleScroll);
+
+        // 3. Typing Badge Animation
+        const badgePhrases = [
+            "Initializing FinBERT Engine...",
+            "Connecting to X.com DOM...",
+            "Loading 988 Institutional Accounts...",
+            "System Ready. Awaiting Signals."
+        ];
+        let phraseIndex = 0;
+        let badgeInterval;
+        if (typingBadgeRef.current) {
+             badgeInterval = setInterval(() => {
+                phraseIndex = (phraseIndex + 1) % badgePhrases.length;
+                if(typingBadgeRef.current) {
+                    typingBadgeRef.current.style.opacity = 0;
+                    setTimeout(() => {
+                        if(typingBadgeRef.current) {
+                            typingBadgeRef.current.innerText = badgePhrases[phraseIndex];
+                            typingBadgeRef.current.style.opacity = 1;
+                            typingBadgeRef.current.style.transition = "opacity 0.5s ease";
+                        }
+                    }, 500);
+                }
+            }, 4000);
         }
 
-        this.el.innerHTML = output;
-
-        if (complete === this.queue.length) {
-          this.resolve();
-        } else {
-          this.frameRequest = window.requestAnimationFrame(this.update);
-          this.frame += 1;
+        // 4. Text Scramble Animation
+        class TextScramble {
+            constructor(el) {
+                this.el = el;
+                this.chars = '01#X$!<>-_\\/[]{}—=+*^?#';
+                this.update = this.update.bind(this);
+            }
+            setText(newText) {
+                const oldText = this.el.innerText;
+                const length = Math.max(oldText.length, newText.length);
+                const promise = new Promise((resolve) => this.resolve = resolve);
+                this.queue = [];
+                for (let i = 0; i < length; i++) {
+                    const from = oldText[i] || '';
+                    const to = newText[i] || '';
+                    const start = Math.floor(Math.random() * 40);
+                    const end = start + Math.floor(Math.random() * 40);
+                    this.queue.push({ from, to, start, end, char: '' });
+                }
+                cancelAnimationFrame(this.frameRequest);
+                this.frame = 0;
+                this.update();
+                return promise;
+            }
+            update() {
+                let output = '';
+                let complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) {
+                        complete++;
+                        output += to;
+                    } else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) {
+                            char = this.chars[Math.floor(Math.random() * this.chars.length)];
+                            this.queue[i].char = char;
+                        }
+                        output += `<span style="color: #10B981; opacity: 0.8; font-family: monospace;">${char}</span>`;
+                    } else {
+                        output += from;
+                    }
+                }
+                this.el.innerHTML = output;
+                if (complete === this.queue.length) {
+                    this.resolve();
+                } else {
+                    this.frameRequest = requestAnimationFrame(this.update);
+                    this.frame++;
+                }
+            }
         }
-      }
-    }
 
-    const scrambleTarget = document.getElementById('tx-scramble-target');
-    let scrambleRaf = null;
-    const scrambleDelay = window.setTimeout(() => {
-      if (!scrambleTarget) {
-        return;
-      }
-      const scramble = new TextScramble(scrambleTarget);
-      scramble.setText(
-        'Turn noisy timelines into structured conviction. TraderX combines whale flow, sentiment context, and tactical alerts in a clean execution workspace.'
-      );
-      scrambleRaf = scramble.frameRequest;
-    }, 280);
+        let fx;
+        let scrambleTimeout;
+        if (scrambleTargetRef.current) {
+            scrambleTimeout = setTimeout(() => {
+                if (scrambleTargetRef.current) {
+                    fx = new TextScramble(scrambleTargetRef.current);
+                    fx.setText("Turn noisy timelines into structured conviction. TraderX combines whale flow, sentiment context, and tactical alerts in a clean execution workspace.");
+                }
+            }, 300);
+        }
 
-    const canvas = document.getElementById('tx-particle-canvas');
-    let rafId = 0;
-    let particles = [];
+        // 5. Hero Particle Physics Canvas
+        const canvas = canvasRef.current;
+        let ctx;
+        let particles = [];
+        let animationFrameId;
 
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        let width = 0;
-        let height = 0;
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const isCompact = window.innerWidth < 980;
+        let mouse = { x: -1000, y: -1000, radius: 250 };
 
-        const mouse = { x: -1000, y: -1000, radius: isCompact ? 140 : 240 };
-
-        const onCanvasMouseMove = (e) => {
-          mouse.x = e.clientX;
-          mouse.y = e.clientY;
+        const handleCanvasMouseMove = (e) => {
+            if (e.clientY < window.innerHeight) {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            } else {
+                mouse.x = -1000; mouse.y = -1000;
+            }
         };
 
-        const onCanvasMouseLeave = () => {
-          mouse.x = -1000;
-          mouse.y = -1000;
+        const handleCanvasMouseLeave = () => {
+            mouse.x = -1000; mouse.y = -1000;
         };
 
-        const resize = () => {
-          width = canvas.clientWidth;
-          height = canvas.clientHeight;
-          canvas.width = width;
-          canvas.height = height;
-        };
+        let width, height;
+        function resize() {
+            if(canvas) {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+        }
 
         class Particle {
-          constructor() {
-            this.x = Math.random() * width;
-            this.y = Math.random() * height;
-            this.baseX = this.x;
-            this.baseY = this.y;
-            this.density = Math.random() * 24 + 1;
-            this.size = Math.random() * 1.4 + 0.5;
-            this.isSignal = Math.random() > 0.92;
-          }
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.isSignal = Math.random() > 0.92;
 
-          update() {
-            this.baseX += (Math.random() - 0.5) * 0.45;
-            this.baseY -= Math.random() * 0.5;
-
-            if (this.baseY < 0) this.baseY = height;
-            if (this.baseX < 0) this.baseX = width;
-            if (this.baseX > width) this.baseX = 0;
-
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy) || 1;
-            const maxDistance = mouse.radius;
-            let force = (maxDistance - distance) / maxDistance;
-            if (force < 0) force = 0;
-
-            const dirX = (dx / distance) * force * this.density;
-            const dirY = (dy / distance) * force * this.density;
-
-            if (distance < mouse.radius) {
-              if (this.isSignal) {
-                this.x += dirX * 0.5;
-                this.y += dirY * 0.5;
-              } else {
-                this.x -= dirX * 0.7;
-                this.y -= dirY * 0.7;
-              }
-            } else {
-              this.x += (this.baseX - this.x) / 16;
-              this.y += (this.baseY - this.y) / 16;
+                this.baseColor = `rgba(255, 255, 255, ${Math.random() * 0.1})`;
+                this.signalColor = `rgba(16, 185, 129, 0.8)`;
             }
-          }
 
-          draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.isSignal ? this.size * 1.6 : this.size, 0, Math.PI * 2);
-            if (this.isSignal) {
-              ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
-              ctx.shadowBlur = 8;
-              ctx.shadowColor = '#10B981';
-            } else {
-              ctx.fillStyle = 'rgba(255,255,255,0.12)';
-              ctx.shadowBlur = 0;
+            update() {
+                this.baseX += (Math.random() - 0.5) * 0.5;
+                this.baseY -= Math.random() * 0.5;
+
+                if (this.baseY < 0) this.baseY = height;
+                if (this.baseX < 0) this.baseX = width;
+                if (this.baseX > width) this.baseX = 0;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                let forceDirectionX = dx / distance;
+                let forceDirectionY = dy / distance;
+
+                let maxDistance = mouse.radius;
+                let force = (maxDistance - distance) / maxDistance;
+                if (force < 0) force = 0;
+
+                let directionX = (forceDirectionX * force * this.density);
+                let directionY = (forceDirectionY * force * this.density);
+
+                if (distance < mouse.radius) {
+                    if (this.isSignal) {
+                        this.x += directionX * 0.5;
+                        this.y += directionY * 0.5;
+                    } else {
+                        this.x -= directionX * 0.8;
+                        this.y -= directionY * 0.8;
+                    }
+                } else {
+                    if (this.x !== this.baseX) {
+                        let dx = this.x - this.baseX;
+                        this.x -= dx / 20;
+                    }
+                    if (this.y !== this.baseY) {
+                        let dy = this.y - this.baseY;
+                        this.y -= dy / 20;
+                    }
+                }
             }
-            ctx.fill();
-          }
-        }
 
-        const makeParticles = () => {
-          const density = isCompact ? 15000 : 9000;
-          const particleCount = Math.max(36, Math.floor((window.innerWidth * window.innerHeight) / density));
-          particles = Array.from({ length: particleCount }, () => new Particle());
-        };
-
-        const drawConnections = () => {
-          if (isCompact) {
-            return;
-          }
-
-          const signals = particles.filter((p) => p.isSignal);
-          ctx.shadowBlur = 0;
-
-          for (let i = 0; i < signals.length; i += 1) {
-            for (let j = i + 1; j < signals.length; j += 1) {
-              const dx = signals[i].x - signals[j].x;
-              const dy = signals[i].y - signals[j].y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 180) {
-                const opacity = 0.3 - (dist / 180) * 0.3;
+            draw() {
+                if(!ctx) return;
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(16, 185, 129, ${opacity})`;
-                ctx.lineWidth = 1;
-                ctx.moveTo(signals[i].x, signals[i].y);
-                ctx.lineTo(signals[j].x, signals[j].y);
-                ctx.stroke();
-              }
+                ctx.arc(this.x, this.y, this.isSignal ? this.size * 1.5 : this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.isSignal ? this.signalColor : this.baseColor;
+                if (this.isSignal) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#10B981';
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                ctx.fill();
             }
-          }
-        };
-
-        const animate = () => {
-          ctx.clearRect(0, 0, width, height);
-          particles.forEach((p) => {
-            p.update();
-            p.draw();
-          });
-          drawConnections();
-          rafId = window.requestAnimationFrame(animate);
-        };
-
-        resize();
-        makeParticles();
-
-        window.addEventListener('mousemove', onCanvasMouseMove);
-        window.addEventListener('mouseleave', onCanvasMouseLeave);
-        window.addEventListener('resize', () => {
-          resize();
-          makeParticles();
-        });
-
-        if (!prefersReduced) {
-          animate();
         }
-      }
-    }
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+        if (canvas) {
+             ctx = canvas.getContext('2d');
+             window.addEventListener('mousemove', handleCanvasMouseMove);
+             window.addEventListener('mouseleave', handleCanvasMouseLeave);
+             window.addEventListener('resize', resize);
+             resize();
 
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('scroll', onScroll);
-      observer.disconnect();
-      window.clearInterval(badgeInterval);
-      window.clearTimeout(scrambleDelay);
-      if (scrambleRaf) {
-        window.cancelAnimationFrame(scrambleRaf);
-      }
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-    };
-  }, []);
+             const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 9000);
+             for (let i = 0; i < particleCount; i++) {
+                 particles.push(new Particle());
+             }
 
-  return (
-    <div className="tx-landing">
-      <div id="tx-spotlight" />
+             const animateCanvas = () => {
+                 if(!ctx) return;
+                 ctx.clearRect(0, 0, width, height);
 
-      <div className="tx-ticker-wrap">
-        <div className="tx-ticker-track">
-          <span className="tx-ticker-item"><span className="tx-dot tx-green" />$BTC: BULLISH (0.89)</span>
-          <span className="tx-ticker-item"><span className="tx-dot tx-amber" />$TSLA: VOLATILE</span>
-          <span className="tx-ticker-item tx-green-text">+2,401 signals parsed</span>
-          <span className="tx-ticker-item">Whale alert: 1.2K ETH moved</span>
-          <span className="tx-ticker-item"><span className="tx-dot tx-green" />$SOL: BULLISH (0.92)</span>
-          <span className="tx-ticker-item">Tier 1 influencer: neutral</span>
-          <span className="tx-ticker-item"><span className="tx-dot tx-green" />$NVDA: VERY BULLISH</span>
-          <span className="tx-ticker-item"><span className="tx-dot tx-green" />$BTC: BULLISH (0.89)</span>
-          <span className="tx-ticker-item"><span className="tx-dot tx-amber" />$TSLA: VOLATILE</span>
-          <span className="tx-ticker-item tx-green-text">+2,401 signals parsed</span>
-          <span className="tx-ticker-item">Whale alert: 1.2K ETH moved</span>
-        </div>
-      </div>
+                 particles.forEach(p => {
+                     p.update();
+                     p.draw();
+                 });
 
-      <header className="tx-header" id="main-header">
-        <div className="tx-container tx-header-inner">
-          <div className="tx-brand">
-            <div className="tx-logo-wrap">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="#10B981" />
-              </svg>
-            </div>
-            <span className="tx-brand-name">
-              TraderX
-              <span className="tx-brand-pill">Pro</span>
-            </span>
-          </div>
+                 let signals = particles.filter(p => p.isSignal);
+                 ctx.shadowBlur = 0;
 
-          <nav className="tx-nav">
-            <Link href="/features">Features</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/how-it-works">How It Works</Link>
-            <Link href="/community">Community</Link>
-            <Link href="/docs">Docs</Link>
-            <Link href="/launch">Launch</Link>
-          </nav>
+                 for (let i = 0; i < signals.length; i++) {
+                     for (let j = i + 1; j < signals.length; j++) {
+                         let dx = signals[i].x - signals[j].x;
+                         let dy = signals[i].y - signals[j].y;
+                         let dist = Math.sqrt(dx*dx + dy*dy);
 
-          <div className="tx-header-right">
-            <div className="tx-system-status">
-              <span className="tx-dot tx-green tx-pulse" />
-              Systems online
-            </div>
-            <Link href="/launch" className="tx-btn tx-btn-sm tx-btn-outline">Download</Link>
-          </div>
-        </div>
-      </header>
+                         if (dist < 180) {
+                             ctx.beginPath();
+                             let opacity = 0.3 - (dist/180) * 0.3;
+                             ctx.strokeStyle = `rgba(16, 185, 129, ${opacity})`;
+                             ctx.lineWidth = 1;
+                             ctx.moveTo(signals[i].x, signals[i].y);
+                             ctx.lineTo(signals[j].x, signals[j].y);
+                             ctx.stroke();
+                         }
+                     }
+                 }
+                 animationFrameId = requestAnimationFrame(animateCanvas);
+             }
+             animateCanvas();
+        }
 
-      <section className="tx-hero" id="hero">
-        <canvas id="tx-particle-canvas" className="tx-canvas" />
-        <div className="tx-perspective-floor" />
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('scroll', handleScroll);
+            if (badgeInterval) clearInterval(badgeInterval);
+            if (scrambleTimeout) clearTimeout(scrambleTimeout);
+            if(fx) cancelAnimationFrame(fx.frameRequest);
+            if(canvas) {
+                window.removeEventListener('mousemove', handleCanvasMouseMove);
+                window.removeEventListener('mouseleave', handleCanvasMouseLeave);
+                window.removeEventListener('resize', resize);
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+    }, []);
 
-        <div className="tx-container tx-hero-grid">
-          <div className="tx-hero-left">
-            <div className="tx-status-chip tx-reveal">
-              <span className="tx-dot tx-green" />
-              <span id="tx-typing-badge">Initializing FinBERT Engine...</span>
-            </div>
+    return (
+        <div className="antialiased flex flex-col relative selection:bg-emerald selection:text-obsidian pt-[34px]">
+             <div id="spotlight"></div>
 
-            <h1 className="tx-hero-title tx-reveal delay-100">
-              A calmer, sharper way
-              <br />
-              to trade on <span className="tx-sweep-text">X</span>.
-            </h1>
-
-            <p id="tx-scramble-target" className="tx-hero-subtitle tx-reveal delay-200">
-              Turn noisy timelines into structured conviction.
-            </p>
-
-            <div className="tx-hero-cta tx-reveal delay-300">
-              <a href="https://github.com/bhrigu-verma/traderx-extension/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" className="tx-btn tx-btn-primary">
-                <span>Start Tracking</span>
-              </a>
-              <div className="tx-hero-meta">988+ curated institutional accounts</div>
-            </div>
-          </div>
-
-          <div className="tx-hero-right tx-reveal delay-300">
-            <div className="tx-radar tx-radar-main" />
-            <div className="tx-radar tx-radar-dashed" />
-            <div className="tx-radar tx-radar-inner" />
-
-            <svg className="tx-engine-lines" viewBox="0 0 550 550" aria-hidden="true">
-              <path d="M 480 150 Q 380 200 275 275" className="tx-flow-in" />
-              <path d="M 500 400 Q 380 350 275 275" className="tx-flow-in" />
-              <path d="M 400 500 Q 350 400 275 275" className="tx-flow-in" />
-              <path d="M 275 275 Q 150 180 80 120" className="tx-flow-out" />
-              <path d="M 275 275 Q 150 350 60 420" className="tx-flow-out" />
-              <path d="M 275 275 Q 100 275 40 275" className="tx-flow-out" />
-            </svg>
-
-            <div className="tx-engine-core">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5">
-                <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
-                <line x1="12" y1="22" x2="12" y2="15.5" />
-                <polyline points="22 8.5 12 15.5 2 8.5" />
-                <polyline points="2 15.5 12 8.5 22 15.5" />
-                <line x1="12" y1="2" x2="12" y2="8.5" />
-              </svg>
-              <div className="tx-engine-title">FinBERT</div>
-              <div className="tx-engine-sub">Processing</div>
-            </div>
-
-            <article className="tx-panel tx-panel-noise tx-float-1">
-              <div className="tx-panel-top">
-                <span>@DegenApe99</span>
-                <span className="tx-badge-red">Engagement bait</span>
-              </div>
-              <p>RT if you think $PEPE is going to move by tomorrow.</p>
-            </article>
-
-            <article className="tx-panel tx-panel-noise tx-float-3">
-              <div className="tx-panel-top">
-                <span>@CryptoGuru</span>
-                <span className="tx-badge-red">Spam</span>
-              </div>
-              <p>Link in bio for VIP signals. Guaranteed returns.</p>
-            </article>
-
-            <article className="tx-panel tx-panel-signal tx-float-2">
-              <div className="tx-panel-top">
-                <span className="tx-badge-green">Structured signal</span>
-                <span>Just now</span>
-              </div>
-              <h3>$BTC momentum</h3>
-              <p>Tier-1 institutional accumulation detected across major wallets.</p>
-            </article>
-
-            <article className="tx-panel tx-panel-alert tx-float-1">
-              <div className="tx-panel-top">
-                <span className="tx-badge-amber">Volatility alert</span>
-              </div>
-              <h3>$TSLA earnings context</h3>
-              <p>Sentiment divergence high. Standard deviation greater than threshold.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="tx-section tx-section-dark">
-        <div className="tx-container tx-section-head tx-reveal">
-          <span className="tx-section-pill">Features</span>
-          <h2>A platform that feels deliberate</h2>
-          <p>Each module removes noise, improves timing, and supports disciplined execution.</p>
-        </div>
-
-        <div className="tx-container tx-card-grid">
-          {[
-            ['Core signal', 'AI Trading Copilot', 'Generate cleaner plans with entries, stops, and confidence windows from sentiment and structure.'],
-            ['On-chain', 'Whale Flow Tracker', 'Detect accumulation versus distribution before social narratives catch up.'],
-            ['Workflow', 'Infinite Data Export', 'Capture full context while you scroll and export for journals or quant analysis.'],
-            ['Context', 'Sector Heatmaps', 'Read momentum by narrative cluster and rotate attention to active sectors.'],
-            ['Precision', 'Combo Alerts', 'Stack conditions so alerts trigger only when conviction is high.'],
-            ['Trust', 'Verified Institutional Tier', 'Filter to curated macro, institutional, and tier-1 accounts.'],
-          ].map((item, idx) => (
-            <article key={item[1]} className={`tx-spotlight-card tx-reveal delay-${(idx % 3) * 100}`}>
-              <span className="tx-card-tag">{item[0]}</span>
-              <h3>{item[1]}</h3>
-              <p>{item[2]}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="workflow" className="tx-section tx-section-soft">
-        <div className="tx-container tx-section-head tx-reveal">
-          <span className="tx-section-pill">How it works</span>
-          <h2 className="tx-workflow-title">
-            <span className="tx-workflow-highlight">Fast onboarding</span>, durable execution edge
-          </h2>
-          <p>A short setup path designed for repeatable, high-quality execution inside your browser.</p>
-        </div>
-
-        <div className="tx-container tx-timeline-container">
-          <div className="tx-timeline-line">
-            <div className="tx-timeline-fill" />
-          </div>
-
-          {[
-            ['Step 01', 'Download and install', 'Install the extension, pin it, and initialize your workspace.'],
-            ['Step 02', 'Use X as usual', 'Continue browsing while TraderX layers intelligence in real time.'],
-            ['Step 03', 'Define your conditions', 'Set watchlists and combo alerts aligned with your framework.'],
-            ['Step 04', 'Execute with confidence', 'Act only when confluence aligns and export clean post-trade data.'],
-          ].map((step, idx) => (
-            <div key={step[0]} className={`tx-step-item tx-reveal delay-${(idx % 3) * 100}`}>
-              <div className="tx-step-icon"><span className="tx-step-svg" /></div>
-              <div className="tx-step-content">
-                <span className="tx-step-kicker">{step[0]}</span>
-                <h3>{step[1]}</h3>
-                <p>{step[2]}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="testimonials" className="tx-section tx-section-dark">
-        <div className="tx-container tx-section-head tx-reveal">
-          <span className="tx-section-pill">Testimonials</span>
-          <h2>What traders notice first</h2>
-          <p>Sharper focus, cleaner timing, and less reactive decision-making.</p>
-        </div>
-
-        <div className="tx-container tx-card-grid tx-testimonial-grid">
-          {[
-            ['A. Patel', 'Independent Trader', 'TraderX cuts through narrative spikes fast and keeps my execution calm.'],
-            ['M. Chen', 'Research Analyst', 'We use it as first-pass filtering before deep desk analysis.'],
-            ['J. Romero', 'Quant Hobbyist', 'Signals appear where I already work, with no extra workflow friction.'],
-            ['S. Williams', 'Swing Trader', 'Combo alerts reduced random pings and improved decision quality.'],
-            ['K. Nakamura', 'Data Scientist', 'Export depth integrates cleanly with my notebooks and pipelines.'],
-            ['R. Goldman', 'Portfolio Manager', 'Institutional filters fit our team workflow immediately.'],
-          ].map((item, idx) => (
-            <article key={item[0]} className={`tx-spotlight-card tx-reveal delay-${(idx % 3) * 100}`}>
-              <div className="tx-stars">*****</div>
-              <p className="tx-quote">{item[2]}</p>
-              <div className="tx-profile">
-                <div className="tx-avatar">{item[0].split(' ').map((s) => s[0]).join('')}</div>
-                <div>
-                  <div className="tx-name">{item[0]}</div>
-                  <div className="tx-role">{item[1]}</div>
+            {/* Live Ticker Tape */}
+            <div className="ticker-wrap">
+                <div className="ticker-move">
+                    <div className="ticker-item"><span className="text-emerald">●</span> $BTC: BULLISH (0.89)</div>
+                    <div className="ticker-item"><span className="text-amber">●</span> $TSLA: VOLATILE</div>
+                    <div className="ticker-item text-emerald">+2,401 Signals Parsed</div>
+                    <div className="ticker-item"><span className="text-text_muted">Whale Alert:</span> 1.2K ETH Moved</div>
+                    <div className="ticker-item"><span className="text-emerald">●</span> $SOL: BULLISH (0.92)</div>
+                    <div className="ticker-item">Tier 1 Influencer (Fed): NEUTRAL</div>
+                    <div className="ticker-item"><span className="text-emerald">●</span> $NVDA: VERY BULLISH</div>
+                    {/* Duplicates for loop */}
+                    <div className="ticker-item"><span className="text-emerald">●</span> $BTC: BULLISH (0.89)</div>
+                    <div className="ticker-item"><span className="text-amber">●</span> $TSLA: VOLATILE</div>
+                    <div className="ticker-item text-emerald">+2,401 Signals Parsed</div>
+                    <div className="ticker-item"><span className="text-text_muted">Whale Alert:</span> 1.2K ETH Moved</div>
+                    <div className="ticker-item"><span className="text-emerald">●</span> $SOL: BULLISH (0.92)</div>
+                    <div className="ticker-item">Tier 1 Influencer (Fed): NEUTRAL</div>
+                    <div className="ticker-item"><span className="text-emerald">●</span> $NVDA: VERY BULLISH</div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+            </div>
 
-      <section className="tx-section tx-section-cta">
-        <div className="tx-cta-glow" />
-        <div className="tx-container tx-cta tx-reveal">
-          <h2>Build your edge. Keep your composure.</h2>
-          <p>
-            TraderX gives you a premium intelligence layer inside the feed you already use,
-            with less noise and better decision timing from day one.
-          </p>
-          <div className="tx-hero-cta">
-            <a href="#" className="tx-btn tx-btn-primary">Download Extension</a>
-            <a href="#" className="tx-btn tx-btn-outline">View Plans</a>
-          </div>
-          <div className="tx-small-note">No credit card required. Cancel anytime. Works on Chromium browsers.</div>
-        </div>
-
-        <footer className="tx-container tx-footer tx-reveal delay-100">
-          <div className="tx-footer-grid">
-            <div>
-              <div className="tx-brand">
-                <div className="tx-logo-wrap">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="#10B981" />
-                  </svg>
+            {/* Header */}
+            <header className="fixed top-[34px] left-0 right-0 z-[60] w-full px-6 py-4 flex justify-between items-center bg-obsidian/60 backdrop-blur-xl border-b border-border_dim transition-all duration-300" id="main-header">
+                <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-graphite border border-gray-800 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="#10B981" filter="drop-shadow(0px 0px 4px rgba(16,185,129,0.8))"/>
+                            </svg>
+                        </div>
+                        <span className="font-extrabold text-xl tracking-tight text-text_main flex items-center gap-2">
+                            TraderX
+                            <span className="text-[10px] font-mono bg-emerald/10 border border-emerald/30 px-1.5 py-0.5 rounded text-emerald uppercase tracking-wider">Pro</span>
+                        </span>
+                    </div>
+                    <nav className="hidden md:flex gap-8 text-sm text-text_muted font-medium">
+                        <Link href="#features" className="hover:text-text_main transition-colors">Features</Link>
+                        <Link href="#workflow" className="hover:text-text_main transition-colors">Workflow</Link>
+                        <Link href="#testimonials" className="hover:text-text_main transition-colors">Testimonials</Link>
+                        <Link href="/pricing" className="hover:text-text_main transition-colors">Pricing</Link>
+                    </nav>
+                    <div className="flex items-center gap-4">
+                        <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-text_muted mr-2">
+                            <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald"></span>
+                            </span>
+                            Systems Online
+                        </div>
+                        <Link href="/launch" className="btn-rotating-border text-text_main font-semibold text-xs md:text-sm px-4 md:px-5 py-2 hidden sm:flex">Download</Link>
+                    </div>
                 </div>
-                <span className="tx-brand-name">TraderX Pro</span>
-              </div>
-              <p className="tx-footer-copy">
-                AI-powered trading intelligence that turns X noise into actionable signals.
-              </p>
-            </div>
-
-            <div>
-              <h4>Product</h4>
-              <a href="#features">Features</a>
-              <a href="#">Pricing</a>
-              <a href="#workflow">How it works</a>
-            </div>
-
-            <div>
-              <h4>Resources</h4>
-              <a href="#">Documentation</a>
-              <a href="#">API reference</a>
-              <a href="#">Community</a>
-            </div>
-
-            <div>
-              <h4>Company</h4>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Contact</a>
-            </div>
-          </div>
-
-          <div className="tx-footer-bottom">
-            <span>Copyright 2026 TraderX Pro. All rights reserved.</span>
-            <span className="tx-credit-line">
-              Built by Bhrigu Verma ·{' '}
-              <a href="https://www.linkedin.com/in/bhrigu-verma-89090a273/" target="_blank" rel="noopener noreferrer">LinkedIn</a>{' '}
-              ·{' '}
-              <a href="https://github.com/bhrigu-verma" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </span>
-          </div>
-        </footer>
-      </section>
-
-      <style jsx global>{`
-        .tx-landing {
-          --obsidian: #050505;
-          --graphite: #121212;
-          --emerald: #10b981;
-          --emerald-bright: #00e676;
-          --amber: #f59e0b;
-          --red-neon: #ef4444;
-          --text-main: #f9fafb;
-          --text-muted: #9ca3af;
-          --border-dim: rgba(255, 255, 255, 0.05);
-          --scroll-progress: 0%;
-          position: relative;
-          background: var(--obsidian);
-          color: var(--text-main);
-          font-family: var(--font-sans), Inter, system-ui, sans-serif;
-          overflow-x: hidden;
-          min-height: 100vh;
-        }
-
-        .tx-landing * {
-          box-sizing: border-box;
-        }
-
-        .tx-container {
-          width: min(1200px, calc(100% - 48px));
-          margin: 0 auto;
-        }
-
-        #tx-spotlight {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 15;
-          background: radial-gradient(
-            circle 560px at var(--mouse-x, 50vw) var(--mouse-y, 50vh),
-            rgba(16, 185, 129, 0.03),
-            transparent 80%
-          );
-        }
-
-        .tx-ticker-wrap {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 35;
-          overflow: hidden;
-          background: #0a0a0a;
-          border-bottom: 1px solid var(--border-dim);
-          white-space: nowrap;
-          padding: 7px 0;
-        }
-
-        .tx-ticker-track {
-          display: inline-flex;
-          min-width: 200%;
-          animation: txTicker 42s linear infinite;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          font-size: 12px;
-          color: var(--text-muted);
-        }
-
-        .tx-ticker-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 0 22px;
-        }
-
-        .tx-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 999px;
-          display: inline-flex;
-        }
-
-        .tx-green {
-          background: var(--emerald);
-        }
-
-        .tx-amber {
-          background: var(--amber);
-        }
-
-        .tx-green-text {
-          color: var(--emerald);
-        }
-
-        .tx-pulse {
-          box-shadow: 0 0 0 rgba(16, 185, 129, 0.7);
-          animation: txPulse 2s infinite;
-        }
-
-        .tx-header {
-          position: fixed;
-          top: 34px;
-          left: 0;
-          right: 0;
-          z-index: 45;
-          background: rgba(5, 5, 5, 0.68);
-          backdrop-filter: blur(16px);
-          border-bottom: 1px solid var(--border-dim);
-          padding: 14px 0;
-        }
-
-        .tx-header-inner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-        }
-
-        .tx-brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .tx-logo-wrap {
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          border: 1px solid #1f2937;
-          background: var(--graphite);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
-        }
-
-        .tx-brand-name {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          font-size: 20px;
-        }
-
-        .tx-brand-pill {
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--emerald);
-          border: 1px solid rgba(16, 185, 129, 0.35);
-          border-radius: 6px;
-          padding: 2px 6px;
-          background: rgba(16, 185, 129, 0.1);
-        }
-
-        .tx-nav {
-          display: inline-flex;
-          gap: 28px;
-          color: var(--text-muted);
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .tx-nav a:hover {
-          color: #ffffff;
-        }
-
-        .tx-header-right {
-          display: inline-flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .tx-system-status {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: var(--text-muted);
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-
-        .tx-btn {
-          border-radius: 10px;
-          border: 1px solid transparent;
-          color: #ffffff;
-          text-decoration: none;
-          transition: 220ms ease;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .tx-btn-sm {
-          font-size: 13px;
-          padding: 8px 14px;
-        }
-
-        .tx-btn-primary {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(0, 230, 118, 0.9));
-          color: #04120d;
-          font-size: 14px;
-          padding: 13px 24px;
-          box-shadow: 0 12px 30px rgba(16, 185, 129, 0.26);
-        }
-
-        .tx-btn-primary:hover {
-          transform: translateY(-1px);
-        }
-
-        .tx-btn-outline {
-          border-color: #2a2a2a;
-          background: #0b0b0b;
-          color: #f5f5f5;
-          font-size: 14px;
-          padding: 13px 24px;
-        }
-
-        .tx-btn-outline:hover {
-          border-color: #4b5563;
-          background: #151515;
-        }
-
-        .tx-hero {
-          position: relative;
-          min-height: 100vh;
-          padding: 118px 0 50px;
-          overflow: hidden;
-        }
-
-        .tx-canvas {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 0;
-          pointer-events: none;
-        }
-
-        .tx-perspective-floor {
-          position: absolute;
-          bottom: -20%;
-          left: -50%;
-          width: 200%;
-          height: 100%;
-          background-image:
-            linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-          background-size: 50px 50px;
-          transform: perspective(600px) rotateX(75deg);
-          mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
-          z-index: 1;
-          pointer-events: none;
-        }
-
-        .tx-hero-grid {
-          position: relative;
-          z-index: 2;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 36px;
-          align-items: center;
-        }
-
-        .tx-hero-left {
-          text-align: left;
-        }
-
-        .tx-status-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          border: 1px solid #2b2b2b;
-          background: rgba(18, 18, 18, 0.8);
-          border-radius: 999px;
-          font-size: 12px;
-          color: var(--text-muted);
-          padding: 8px 14px;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          margin-bottom: 26px;
-        }
-
-        .tx-hero-title {
-          font-size: clamp(44px, 6.6vw, 74px);
-          line-height: 1.02;
-          letter-spacing: -0.04em;
-          margin: 0 0 18px;
-          font-weight: 800;
-        }
-
-        .tx-sweep-text {
-          background: linear-gradient(to right, #10b981 20%, #00e676 40%, #ffffff 50%, #00e676 60%, #10b981 80%);
-          background-size: 200% auto;
-          color: transparent;
-          background-clip: text;
-          -webkit-background-clip: text;
-          animation: txShine 3s linear infinite;
-        }
-
-        .tx-hero-subtitle {
-          color: var(--text-muted);
-          font-size: 18px;
-          line-height: 1.8;
-          max-width: 620px;
-          margin-bottom: 24px;
-          min-height: 68px;
-        }
-
-        .tx-scramble-char {
-          color: var(--emerald);
-          opacity: 0.85;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-hero-cta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-        }
-
-        .tx-hero-meta {
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--text-muted);
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-hero-right {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 1 / 1;
-          max-width: 560px;
-          margin-left: auto;
-        }
-
-        .tx-radar {
-          position: absolute;
-          border-radius: 50%;
-          pointer-events: none;
-        }
-
-        .tx-radar-main {
-          inset: 18px;
-          background: conic-gradient(from 0deg, transparent 72%, rgba(16, 185, 129, 0.05) 90%, rgba(16, 185, 129, 0.3) 100%);
-          animation: txRadarSpin 4s linear infinite;
-        }
-
-        .tx-radar-dashed {
-          inset: 68px;
-          border: 1px dashed rgba(255, 255, 255, 0.16);
-          animation: txSpinSlow 8s linear infinite;
-        }
-
-        .tx-radar-inner {
-          inset: 126px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .tx-engine-lines {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 8;
-          fill: none;
-        }
-
-        .tx-flow-in {
-          stroke: rgba(255, 255, 255, 0.16);
-          stroke-width: 2;
-          stroke-dasharray: 6 6;
-          animation: txFlowIn 20s linear infinite;
-        }
-
-        .tx-flow-out {
-          stroke: rgba(16, 185, 129, 0.52);
-          stroke-width: 2;
-          stroke-dasharray: 8 8;
-          animation: txFlowOut 15s linear infinite;
-        }
-
-        .tx-engine-core {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 18;
-          width: 132px;
-          height: 132px;
-          border-radius: 18px;
-          border: 1px solid rgba(16, 185, 129, 0.6);
-          background: linear-gradient(135deg, rgba(20, 20, 20, 0.86), rgba(8, 8, 8, 0.9));
-          backdrop-filter: blur(16px);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          box-shadow:
-            0 0 32px rgba(16, 185, 129, 0.2),
-            inset 0 0 18px rgba(16, 185, 129, 0.08);
-          animation: txCorePulse 3s ease-in-out infinite;
-        }
-
-        .tx-engine-title {
-          font-size: 11px;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          text-transform: uppercase;
-          letter-spacing: 0.11em;
-          color: var(--emerald);
-          font-weight: 700;
-        }
-
-        .tx-engine-sub {
-          font-size: 9px;
-          text-transform: uppercase;
-          letter-spacing: 0.12em;
-          color: var(--text-muted);
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-panel {
-          position: absolute;
-          z-index: 16;
-          border-radius: 12px;
-          padding: 12px;
-          background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(10, 10, 10, 0.9));
-          border: 1px solid rgba(255, 255, 255, 0.09);
-          backdrop-filter: blur(14px);
-          box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.45);
-        }
-
-        .tx-panel-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          font-size: 10px;
-          color: var(--text-muted);
-          margin-bottom: 6px;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-panel h3 {
-          font-size: 15px;
-          margin: 0 0 4px;
-        }
-
-        .tx-panel p {
-          margin: 0;
-          font-size: 12px;
-          line-height: 1.5;
-          color: #d4d4d8;
-        }
-
-        .tx-panel-noise {
-          width: 220px;
-          opacity: 0.62;
-        }
-
-        .tx-panel-signal {
-          width: 254px;
-          border-color: rgba(16, 185, 129, 0.42);
-          box-shadow: 0 0 28px rgba(16, 185, 129, 0.14);
-        }
-
-        .tx-panel-alert {
-          width: 236px;
-          border-color: rgba(245, 158, 11, 0.38);
-          box-shadow: 0 0 28px rgba(245, 158, 11, 0.11);
-        }
-
-        .tx-panel-noise:nth-of-type(1) {
-          right: 8%;
-          top: 14%;
-          transform: rotate(8deg);
-        }
-
-        .tx-panel-noise:nth-of-type(2) {
-          right: 2%;
-          bottom: 22%;
-          transform: rotate(-5deg);
-        }
-
-        .tx-panel-signal {
-          left: 3%;
-          top: 10%;
-        }
-
-        .tx-panel-alert {
-          left: -6%;
-          bottom: 24%;
-        }
-
-        .tx-badge-red,
-        .tx-badge-green,
-        .tx-badge-amber {
-          font-size: 9px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          border-radius: 4px;
-          padding: 2px 5px;
-        }
-
-        .tx-badge-red {
-          color: var(--red-neon);
-          border: 1px solid rgba(239, 68, 68, 0.4);
-          background: rgba(239, 68, 68, 0.1);
-        }
-
-        .tx-badge-green {
-          color: #042617;
-          border: 1px solid rgba(16, 185, 129, 0.4);
-          background: rgba(16, 185, 129, 0.95);
-        }
-
-        .tx-badge-amber {
-          color: #2d1602;
-          border: 1px solid rgba(245, 158, 11, 0.42);
-          background: rgba(245, 158, 11, 0.92);
-        }
-
-        .tx-float-1 {
-          animation: txFloat 6s ease-in-out infinite;
-        }
-
-        .tx-float-2 {
-          animation: txFloat 8s ease-in-out infinite 1s;
-        }
-
-        .tx-float-3 {
-          animation: txFloat 7s ease-in-out infinite 2s;
-        }
-
-        .tx-section {
-          position: relative;
-          z-index: 20;
-          border-top: 1px solid var(--border-dim);
-          padding: 120px 0;
-        }
-
-        .tx-section-dark {
-          background: #050505;
-        }
-
-        .tx-section-soft {
-          background: #080808;
-        }
-
-        .tx-section-cta {
-          background: #030303;
-          overflow: hidden;
-          padding-bottom: 56px;
-        }
-
-        .tx-section-head {
-          text-align: center;
-          margin-bottom: 72px;
-        }
-
-        .tx-section-pill {
-          display: inline-flex;
-          border: 1px solid #2a2a2a;
-          border-radius: 999px;
-          padding: 5px 12px;
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--emerald);
-          background: rgba(16, 185, 129, 0.05);
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          margin-bottom: 20px;
-        }
-
-        .tx-section-head h2 {
-          font-size: clamp(34px, 5vw, 56px);
-          margin: 0 0 16px;
-          letter-spacing: -0.03em;
-        }
-
-        .tx-workflow-title {
-          display: inline-flex;
-          align-items: baseline;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .tx-workflow-highlight {
-          position: relative;
-          color: transparent;
-          background: linear-gradient(90deg, #10b981, #6ee7b7, #10b981);
-          background-size: 220% 100%;
-          background-clip: text;
-          -webkit-background-clip: text;
-          animation: txWorkflowShimmer 3.4s linear infinite;
-        }
-
-        .tx-section-head p {
-          color: var(--text-muted);
-          font-size: 18px;
-          max-width: 760px;
-          margin: 0 auto;
-          line-height: 1.7;
-        }
-
-        .tx-card-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 20px;
-        }
-
-        .tx-spotlight-card {
-          border-radius: 16px;
-          padding: 30px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          background: rgba(18, 18, 18, 0.6);
-          position: relative;
-          overflow: hidden;
-          transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), border-color 260ms ease;
-        }
-
-        .tx-spotlight-card::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            520px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 50%),
-            rgba(16, 185, 129, 0.08),
-            transparent 42%
-          );
-          opacity: 0;
-          transition: opacity 220ms ease;
-          pointer-events: none;
-        }
-
-        .tx-spotlight-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(16, 185, 129, 0.24);
-        }
-
-        .tx-spotlight-card:hover::before {
-          opacity: 1;
-        }
-
-        .tx-card-tag {
-          display: inline-flex;
-          border-radius: 6px;
-          border: 1px solid #313131;
-          background: #151515;
-          color: var(--text-muted);
-          font-size: 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          padding: 4px 8px;
-          margin-bottom: 18px;
-        }
-
-        .tx-spotlight-card h3 {
-          font-size: 24px;
-          margin: 0 0 12px;
-          letter-spacing: -0.02em;
-        }
-
-        .tx-spotlight-card p {
-          margin: 0;
-          color: var(--text-muted);
-          line-height: 1.7;
-          font-size: 15px;
-        }
-
-        .tx-timeline-container {
-          position: relative;
-          max-width: 980px;
-        }
-
-        .tx-timeline-line {
-          position: absolute;
-          left: 18px;
-          top: 0;
-          bottom: 0;
-          width: 1px;
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tx-timeline-fill {
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(
-            to bottom,
-            var(--emerald) var(--scroll-progress),
-            rgba(255, 255, 255, 0.1) var(--scroll-progress)
-          );
-        }
-
-        .tx-step-item {
-          position: relative;
-          display: grid;
-          grid-template-columns: 46px 1fr;
-          gap: 24px;
-          align-items: start;
-          margin-bottom: 46px;
-        }
-
-        .tx-step-content {
-          min-width: 0;
-        }
-
-        .tx-step-icon {
-          width: 38px;
-          height: 38px;
-          border-radius: 999px;
-          border: 2px solid #374151;
-          background: #0f0f0f;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 3;
-          transition: border-color 220ms ease, background 220ms ease;
-        }
-
-        .tx-step-icon.is-active {
-          border-color: var(--emerald);
-          background: rgba(16, 185, 129, 0.12);
-        }
-
-        .tx-step-svg {
-          width: 12px;
-          height: 12px;
-          border-radius: 999px;
-          background: #9ca3af;
-        }
-
-        .tx-step-svg.is-active {
-          background: var(--emerald);
-        }
-
-        .tx-step-kicker {
-          display: inline-flex;
-          font-size: 10px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--emerald);
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          margin-bottom: 8px;
-        }
-
-        .tx-step-content h3 {
-          margin: 0 0 10px;
-          font-size: 28px;
-          letter-spacing: -0.02em;
-        }
-
-        .tx-step-content p {
-          margin: 0;
-          color: var(--text-muted);
-          line-height: 1.7;
-          font-size: 15px;
-          max-width: 640px;
-        }
-
-        .tx-testimonial-grid .tx-spotlight-card {
-          display: flex;
-          flex-direction: column;
-          min-height: 280px;
-        }
-
-        .tx-stars {
-          color: var(--amber);
-          letter-spacing: 2px;
-          margin-bottom: 16px;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-quote {
-          flex: 1;
-          margin: 0 0 22px;
-          color: #f3f4f6;
-          line-height: 1.7;
-        }
-
-        .tx-profile {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .tx-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 999px;
-          border: 1px solid #374151;
-          background: #171717;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          color: var(--text-muted);
-          font-size: 12px;
-        }
-
-        .tx-name {
-          font-weight: 700;
-        }
-
-        .tx-role {
-          font-size: 11px;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-cta-glow {
-          position: absolute;
-          top: 26%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: min(900px, 90vw);
-          height: 360px;
-          border-radius: 999px;
-          background: rgba(16, 185, 129, 0.28);
-          filter: blur(120px);
-          pointer-events: none;
-          opacity: 0.25;
-        }
-
-        .tx-cta {
-          text-align: center;
-          margin-bottom: 86px;
-          position: relative;
-        }
-
-        .tx-cta h2 {
-          font-size: clamp(38px, 5.6vw, 72px);
-          letter-spacing: -0.04em;
-          margin: 0 auto 14px;
-          line-height: 1.06;
-          max-width: 980px;
-        }
-
-        .tx-cta p {
-          margin: 0 auto 28px;
-          max-width: 820px;
-          color: var(--text-muted);
-          font-size: 20px;
-          line-height: 1.7;
-        }
-
-        .tx-small-note {
-          margin-top: 16px;
-          font-size: 12px;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.07em;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-        }
-
-        .tx-footer {
-          border-top: 1px solid var(--border-dim);
-          padding-top: 52px;
-        }
-
-        .tx-footer-grid {
-          display: grid;
-          grid-template-columns: 1.4fr 1fr 1fr 1fr;
-          gap: 36px;
-          margin-bottom: 42px;
-        }
-
-        .tx-footer h4 {
-          margin: 0 0 14px;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.09em;
-          font-family: var(--font-mono), 'JetBrains Mono', monospace;
-          font-size: 11px;
-        }
-
-        .tx-footer a {
-          display: block;
-          margin-bottom: 10px;
-          color: #d1d5db;
-          font-size: 14px;
-          text-decoration: none;
-          transition: color 180ms ease;
-        }
-
-        .tx-footer a:hover {
-          color: var(--emerald);
-        }
-
-        .tx-footer-copy {
-          margin-top: 14px;
-          color: var(--text-muted);
-          line-height: 1.7;
-          max-width: 360px;
-        }
-
-        .tx-footer-bottom {
-          border-top: 1px solid var(--border-dim);
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          padding-top: 18px;
-          font-size: 12px;
-          color: var(--text-muted);
-        }
-
-        .tx-credit-line a {
-          color: #d1d5db;
-          text-decoration: none;
-          transition: color 180ms ease;
-        }
-
-        .tx-credit-line a:hover {
-          color: var(--emerald);
-        }
-
-        .tx-reveal {
-          opacity: 0;
-          transform: translateY(34px);
-          transition:
-            opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .tx-reveal.active {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .delay-100 {
-          transition-delay: 100ms;
-        }
-
-        .delay-200 {
-          transition-delay: 200ms;
-        }
-
-        .delay-300 {
-          transition-delay: 300ms;
-        }
-
-        @keyframes txTicker {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-
-        @keyframes txPulse {
-          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-          70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        @keyframes txShine {
-          to { background-position: 200% center; }
-        }
-
-        @keyframes txSpinSlow {
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes txRadarSpin {
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes txFlowIn {
-          to { stroke-dashoffset: 1000; }
-        }
-
-        @keyframes txFlowOut {
-          to { stroke-dashoffset: -1000; }
-        }
-
-        @keyframes txCorePulse {
-          0%, 100% {
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.1), inset 0 0 20px rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-          }
-          50% {
-            box-shadow: 0 0 60px rgba(16, 185, 129, 0.35), inset 0 0 30px rgba(16, 185, 129, 0.3);
-            border-color: rgba(16, 185, 129, 0.8);
-          }
-        }
-
-        @keyframes txFloat {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-14px) rotate(1.2deg); }
-        }
-
-        @keyframes txWorkflowShimmer {
-          from { background-position: 220% 0; }
-          to { background-position: 0 0; }
-        }
-
-        @media (max-width: 1120px) {
-          .tx-nav,
-          .tx-system-status,
-          .tx-hero-right {
-            display: none;
-          }
-
-          .tx-hero {
-            min-height: auto;
-            padding: 126px 0 70px;
-          }
-
-          .tx-hero-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .tx-hero-left {
-            max-width: 800px;
-          }
-
-          .tx-card-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .tx-footer-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        @media (max-width: 760px) {
-          .tx-container {
-            width: calc(100% - 28px);
-          }
-
-          .tx-header {
-            top: 34px;
-          }
-
-          .tx-brand-name {
-            font-size: 18px;
-          }
-
-          .tx-btn-sm {
-            font-size: 12px;
-            padding: 7px 10px;
-          }
-
-          .tx-hero-title {
-            font-size: clamp(38px, 12vw, 52px);
-          }
-
-          .tx-hero-subtitle {
-            font-size: 16px;
-            min-height: auto;
-          }
-
-          .tx-section {
-            padding: 84px 0;
-          }
-
-          .tx-section-head h2 {
-            font-size: clamp(28px, 9vw, 40px);
-          }
-
-          .tx-section-head p {
-            font-size: 16px;
-          }
-
-          .tx-card-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .tx-spotlight-card {
-            padding: 24px;
-          }
-
-          .tx-step-item {
-            grid-template-columns: 40px 1fr;
-            gap: 16px;
-            margin-bottom: 34px;
-          }
-
-          .tx-step-content h3 {
-            font-size: 24px;
-          }
-
-          .tx-cta {
-            margin-bottom: 56px;
-          }
-
-          .tx-cta p {
-            font-size: 17px;
-          }
-
-          .tx-footer-grid {
-            grid-template-columns: 1fr;
-            gap: 26px;
-          }
-
-          .tx-footer-bottom {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-        }
-      `}</style>
-    </div>
-  );
+            </header>
+
+             {/* HERO SECTION */}
+            <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10" id="hero">
+                <canvas id="particleCanvas" ref={canvasRef} className="absolute inset-0 z-0 w-full h-full pointer-events-none"></canvas>
+                <div className="perspective-floor"></div>
+
+                <div className="max-w-7xl mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center relative z-30">
+                    <div className="flex flex-col items-center lg:items-start text-center lg:text-left mt-10 lg:mt-0">
+                        <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-graphite/80 border border-gray-800 text-xs font-mono text-text_muted mb-8 backdrop-blur-md reveal">
+                            <span className="w-2 h-2 rounded-full bg-emerald shadow-[0_0_10px_#10B981]"></span>
+                            <span id="typing-badge" ref={typingBadgeRef}>Initializing FinBERT Engine...</span>
+                        </div>
+
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-text_main tracking-tighter leading-[1.05] mb-6 drop-shadow-2xl reveal delay-100">
+                            A calmer, sharper way <br className="hidden lg:block"/>
+                            to trade on <span className="sweep-text">X.</span>
+                        </h1>
+
+                        <p id="scramble-target" ref={scrambleTargetRef} className="text-lg text-text_muted max-w-xl mb-10 h-[70px] font-medium leading-relaxed reveal delay-200">
+                            {/* Injected via JS */}
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full sm:w-auto reveal delay-300">
+                            <Link href="#features" className="btn-rotating-border w-full sm:w-auto text-text_main font-semibold text-sm flex items-center justify-center gap-3 px-8 py-4 group cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                                <span>Start Tracking</span>
+                            </Link>
+                            <div className="flex items-center gap-3 px-4 text-xs font-mono text-text_muted">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                988+ Curated Accounts
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative w-full aspect-square max-w-[550px] mx-auto hidden lg:flex items-center justify-center reveal delay-400">
+                        <div className="absolute inset-4 radar-scan opacity-70"></div>
+                        <div className="absolute inset-16 rounded-full border border-gray-800/40 border-dashed animate-spin-slow"></div>
+                        <div className="absolute inset-32 rounded-full border border-gray-800/60"></div>
+
+                        <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none" viewBox="0 0 550 550">
+                            <path d="M 480 150 Q 380 200 275 275" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" className="flow-line-in" />
+                            <path d="M 500 400 Q 380 350 275 275" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" className="flow-line-in" />
+                            <path d="M 400 500 Q 350 400 275 275" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" className="flow-line-in" />
+
+                            <path d="M 275 275 Q 150 180 80 120" fill="none" stroke="rgba(16,185,129,0.5)" strokeWidth="2" className="flow-line-out" />
+                            <path d="M 275 275 Q 150 350 60 420" fill="none" stroke="rgba(16,185,129,0.5)" strokeWidth="2" className="flow-line-out" />
+                            <path d="M 275 275 Q 100 275 40 275" fill="none" stroke="rgba(16,185,129,0.5)" strokeWidth="2" className="flow-line-out" />
+                        </svg>
+
+                        <div className="absolute z-40 w-32 h-32 rounded-2xl glass-panel-hero border border-emerald/50 flex flex-col items-center justify-center pulse-glow bg-obsidian/80 backdrop-blur-xl">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" className="mb-2">
+                                <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                                <line x1="12" y1="22" x2="12" y2="15.5"></line>
+                                <polyline points="22 8.5 12 15.5 2 8.5"></polyline>
+                                <polyline points="2 15.5 12 8.5 22 15.5"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="8.5"></line>
+                            </svg>
+                            <div className="text-[10px] font-mono text-emerald tracking-widest leading-none">FinBERT</div>
+                            <div className="text-[8px] font-mono text-text_muted mt-1">PROCESSING</div>
+                        </div>
+
+                        <div className="absolute right-[5%] top-[15%] w-48 glass-panel-hero p-3 rounded-lg border border-gray-800 opacity-60 transform rotate-[8deg] float-1 z-20">
+                            <div className="flex justify-between items-start mb-1">
+                                <span className="text-[10px] text-text_muted">@DegenApe99</span>
+                                <span className="text-[8px] font-mono text-red_neon border border-red_neon/50 bg-red_neon/10 px-1 rounded">ENGAGEMENT BAIT</span>
+                            </div>
+                            <p className="text-xs text-text_main opacity-80 blur-[0.5px]">RT if you think $PEPE is going to $1 by tomorrow!! LFG 🚀🚀🌕</p>
+                        </div>
+                        <div className="absolute right-[0%] bottom-[20%] w-44 glass-panel-hero p-3 rounded-lg border border-gray-800 opacity-50 transform -rotate-[5deg] float-3 z-20">
+                            <div className="flex justify-between items-start mb-1">
+                                <span className="text-[10px] text-text_muted">@CryptoGuru</span>
+                                <span className="text-[8px] font-mono text-red_neon border border-red_neon/50 bg-red_neon/10 px-1 rounded">SPAM</span>
+                            </div>
+                            <p className="text-xs text-text_main opacity-80 blur-[1px]">Link in bio for my VIP signals group. 1000% returns guaranteed 📈</p>
+                        </div>
+
+                        <div className="absolute left-[2%] top-[10%] w-56 glass-panel-hero p-4 rounded-xl border border-emerald/40 shadow-[0_0_30px_rgba(16,185,129,0.15)] float-2 z-30">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-[9px] font-mono text-obsidian font-bold bg-emerald px-1.5 py-0.5 rounded">STRUCTURED SIGNAL</span>
+                                <span className="text-[10px] text-text_muted">Just now</span>
+                            </div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2 h-2 rounded-full bg-emerald animate-pulse"></div>
+                                <span className="text-sm font-bold text-text_main">$BTC Momentum</span>
+                            </div>
+                            <p className="text-[11px] text-text_muted">Tier-1 Institutional accumulation detected across 4 whale wallets.</p>
+                        </div>
+                        <div className="absolute left-[-5%] bottom-[25%] w-52 glass-panel-hero p-3 rounded-xl border border-amber/40 shadow-[0_0_30px_rgba(245,158,11,0.1)] float-1 z-30">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-[9px] font-mono text-obsidian font-bold bg-amber px-1.5 py-0.5 rounded">VOLATILITY ALERT</span>
+                            </div>
+                            <div className="text-sm font-bold text-text_main">$TSLA Earnings Context</div>
+                            <p className="text-[11px] text-text_muted mt-1">Sentiment divergence high. Standard deviation of scores &gt; 0.35.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 reveal delay-500 opacity-50">
+                    <span className="text-[10px] font-mono tracking-widest text-text_muted uppercase">Scroll</span>
+                    <div className="w-[1px] h-10 bg-gradient-to-b from-text_muted to-transparent"></div>
+                </div>
+            </section>
+
+             {/* SECTION: FEATURES */}
+            <section id="features" className="relative w-full py-32 px-6 bg-obsidian z-20 border-t border-border_dim">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-20 reveal">
+                        <span className="inline-block border border-gray-800 rounded-full px-3 py-1 text-[10px] font-mono text-emerald tracking-widest uppercase mb-6 bg-emerald/5">Features</span>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-text_main mb-6">A Platform That Feels Deliberate</h2>
+                        <p className="text-text_muted text-lg max-w-2xl mx-auto">Each module was designed to remove noise, improve timing, and support disciplined decision-making.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-100 group">
+                            <span className="text-[10px] font-mono text-text_muted bg-graphite border border-gray-800 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">Core Signal</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-emerald/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">AI Trading Copilot</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Generate cleaner trade plans with entries, stops, and confidence windows from sentiment and market structure.</p>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-200 group">
+                            <span className="text-[10px] font-mono text-text_muted bg-graphite border border-gray-800 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">On-Chain</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-emerald/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">Whale Flow Tracker</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Monitor high-value on-chain movement and detect accumulation versus distribution before social narratives catch up.</p>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-300 group">
+                            <span className="text-[10px] font-mono text-text_muted bg-graphite border border-gray-800 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">Workflow</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-emerald/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">Infinite Data Export</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Capture full feed context while you scroll and export it in clean formats for journals, quant backtests, or model training.</p>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-100 group">
+                            <span className="text-[10px] font-mono text-text_muted bg-graphite border border-gray-800 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">Context</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-emerald/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">Sector Heatmaps</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Read momentum by narrative cluster at a glance and quickly rotate attention to sectors gaining structural traction.</p>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-200 group">
+                            <span className="text-[10px] font-mono text-text_muted bg-graphite border border-gray-800 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">Precision</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-emerald/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">Combo Alerts</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Build condition stacks that notify only when conviction is high, drastically reducing alert fatigue and false positives.</p>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-300 group">
+                            <span className="text-[10px] font-mono text-amber bg-amber/10 border border-amber/20 px-2 py-1 rounded w-max mb-6 tracking-widest uppercase">Trust</span>
+                            <div className="w-12 h-12 rounded-lg bg-graphite border border-gray-800 flex items-center justify-center mb-6 group-hover:border-amber/50 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-text_main mb-3">Verified Institutional Tier</h3>
+                            <p className="text-sm text-text_muted leading-relaxed">Filter noise by exclusively tracking a curated registry of 988+ verified institutional, macro, and tier-1 trading accounts.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             {/* SECTION: HOW IT WORKS */}
+            <section id="workflow" className="relative w-full py-32 px-6 bg-[#080808] z-20 border-t border-border_dim">
+                <div className="max-w-4xl mx-auto">
+                    <div className="text-center mb-20 reveal">
+                        <span className="inline-block border border-gray-800 rounded-full px-3 py-1 text-[10px] font-mono text-emerald tracking-widest uppercase mb-6 bg-emerald/5">How It Works</span>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-text_main mb-6">Fast onboarding, durable edge</h2>
+                        <p className="text-text_muted text-lg max-w-xl mx-auto">A short setup path designed for repeatable, high-quality execution right inside your browser.</p>
+                    </div>
+
+                    <div className="relative pl-8 md:pl-0">
+                        <div className="absolute left-10 md:left-1/2 top-0 bottom-0 w-[1px] md:transform md:-translate-x-1/2 bg-gray-800 timeline-container">
+                            <div className="w-full h-full timeline-line" id="timeline-progress"></div>
+                        </div>
+
+                        <div className="relative flex flex-col md:flex-row items-center justify-between mb-16 md:mb-24 reveal step-item">
+                            <div className="w-full md:w-5/12 text-left md:text-right pr-0 md:pr-10">
+                                <span className="text-[10px] font-mono text-emerald tracking-widest uppercase mb-2 block">Step 01</span>
+                                <h3 className="text-2xl font-bold text-text_main mb-3">Download and install</h3>
+                                <p className="text-sm text-text_muted">Get the latest extension release from GitHub or the Web Store, then load it and pin it to your toolbar.</p>
+                            </div>
+                            <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-obsidian border-2 border-gray-800 z-10 transition-colors duration-500 step-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="step-svg"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>
+                            </div>
+                            <div className="w-full md:w-5/12 hidden md:block"></div>
+                        </div>
+
+                        <div className="relative flex flex-col md:flex-row items-center justify-between mb-16 md:mb-24 reveal step-item">
+                            <div className="w-full md:w-5/12 hidden md:block"></div>
+                            <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-obsidian border-2 border-gray-800 z-10 transition-colors duration-500 step-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="step-svg"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            </div>
+                            <div className="w-full md:w-5/12 text-left pl-14 md:pl-10">
+                                <span className="text-[10px] font-mono text-emerald tracking-widest uppercase mb-2 block">Step 02</span>
+                                <h3 className="text-2xl font-bold text-text_main mb-3">Use X as usual</h3>
+                                <p className="text-sm text-text_muted">Continue browsing normally while our intelligence layers process context, remove spam, and tag tickers in real time.</p>
+                            </div>
+                        </div>
+
+                        <div className="relative flex flex-col md:flex-row items-center justify-between mb-16 md:mb-24 reveal step-item">
+                            <div className="w-full md:w-5/12 text-left md:text-right pr-0 md:pr-10 pl-14 md:pl-0">
+                                <span className="text-[10px] font-mono text-emerald tracking-widest uppercase mb-2 block">Step 03</span>
+                                <h3 className="text-2xl font-bold text-text_main mb-3">Define your conditions</h3>
+                                <p className="text-sm text-text_muted">Set up watchlists and stacked alerts that reflect your actual trading framework, filtering out irrelevant noise.</p>
+                            </div>
+                            <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-obsidian border-2 border-gray-800 z-10 transition-colors duration-500 step-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="step-svg"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            </div>
+                            <div className="w-full md:w-5/12 hidden md:block"></div>
+                        </div>
+
+                        <div className="relative flex flex-col md:flex-row items-center justify-between reveal step-item">
+                            <div className="w-full md:w-5/12 hidden md:block"></div>
+                            <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-obsidian border-2 border-gray-800 z-10 transition-colors duration-500 step-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="step-svg"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                            </div>
+                            <div className="w-full md:w-5/12 text-left pl-14 md:pl-10">
+                                <span className="text-[10px] font-mono text-emerald tracking-widest uppercase mb-2 block">Step 04</span>
+                                <h3 className="text-2xl font-bold text-text_main mb-3">Execute with confidence</h3>
+                                <p className="text-sm text-text_muted">Act only when confluence aligns. Track post-trade quality with clean exported data sent straight to your journal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             {/* SECTION: TESTIMONIALS */}
+            <section id="testimonials" className="relative w-full py-32 px-6 bg-obsidian z-20 border-t border-border_dim">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-20 reveal">
+                        <span className="inline-block border border-gray-800 rounded-full px-3 py-1 text-[10px] font-mono text-emerald tracking-widest uppercase mb-6 bg-emerald/5">Testimonials</span>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-text_main mb-6">What traders notice first</h2>
+                        <p className="text-text_muted text-lg max-w-2xl mx-auto">Sharper focus, cleaner timing, and vastly less reactive decision-making.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-100">
+                            <div className="flex gap-1 mb-6">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"TraderX helps me cut through narrative spikes fast. I get context, apply my technicals, then act with significantly less hesitation."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">AP</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">A. Patel</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Independent Trader</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-200">
+                            <div className="flex gap-1 mb-6">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"We use it as a first-pass filter before deeper desk research. The time savings on broad market scanning are immediate."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">MC</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">M. Chen</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Research Analyst</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-300">
+                            <div className="flex gap-1 mb-6">
+                                {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"Signals show up right where I already work. I don't need another tab open. That one change massively improved my execution consistency."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">JR</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">J. Romero</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Quant Hobbyist</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-100">
+                            <div className="flex gap-1 mb-6">
+                                 {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"Combo alerts reduced random pings and improved decision quality. Less noise, better focus during high volatility sessions."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">SW</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">S. Williams</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Swing Trader</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-200">
+                            <div className="flex gap-1 mb-6">
+                                 {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"Export depth is exceptional. It feeds directly into my Python notebooks and research pipelines. A true quant-friendly tool."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">KN</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">K. Nakamura</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Data Scientist</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="spotlight-card p-8 flex flex-col h-full reveal delay-300">
+                            <div className="flex gap-1 mb-6">
+                                 {[...Array(5)].map((_, i) => (
+                                    <svg key={i} width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                ))}
+                            </div>
+                            <p className="text-text_main text-[15px] leading-relaxed mb-8 flex-grow">"Team rollout was straightforward, and the institutional filter integration fit our existing workflow entirely without friction."</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-graphite border border-gray-700 flex items-center justify-center text-xs font-bold text-text_muted">RG</div>
+                                <div>
+                                    <div className="text-sm font-bold text-text_main">R. Goldman</div>
+                                    <div className="text-[11px] font-mono text-text_muted uppercase">Portfolio Manager</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             {/* SECTION: CTA & FOOTER */}
+            <section className="relative w-full pt-32 pb-12 px-6 bg-[#030303] z-20 border-t border-border_dim overflow-hidden">
+                <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+                    <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-[800px] h-[400px] bg-emerald rounded-[100%] blur-[120px]"></div>
+                </div>
+                <div className="footer-glow"></div>
+
+                <div className="max-w-4xl mx-auto text-center relative z-10 mb-32 reveal">
+                    <h2 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-text_main mb-6">Build your edge.<br/>Keep your composure.</h2>
+                    <p className="text-text_muted text-lg md:text-xl max-w-2xl mx-auto mb-10">TraderX gives you a premium intelligence layer inside the feed you already use, with less noise and better decision timing from day one.</p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto">
+                        <Link href="/launch" className="btn-rotating-border w-full sm:w-auto text-text_main font-semibold text-sm flex items-center justify-center gap-3 px-8 py-4 group cursor-pointer shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            <span>Download Extension</span>
+                        </Link>
+
+                        <Link href="/pricing" className="w-full sm:w-auto px-8 py-4 rounded-lg bg-graphite border border-gray-800 text-text_main font-semibold text-sm hover:bg-gray-800 hover:border-gray-600 transition-all flex items-center justify-center gap-2 group">
+                            View Plans
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </Link>
+                    </div>
+                    <p className="mt-8 text-xs text-text_muted font-mono tracking-wide">No credit card required — Cancel anytime — Works on Chromium browsers</p>
+                </div>
+
+                <footer className="max-w-6xl mx-auto border-t border-border_dim pt-16 pb-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 reveal delay-100">
+                        <div className="col-span-1 md:col-span-1">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="relative flex h-6 w-6 items-center justify-center rounded bg-graphite border border-gray-800">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="#10B981"/>
+                                    </svg>
+                                </div>
+                                <span className="font-bold text-text_main">TraderX Pro</span>
+                            </div>
+                            <p className="text-sm text-text_muted mb-6 leading-relaxed">AI-powered trading intelligence that turns X/Twitter noise into actionable trade signals. Not financial advice.</p>
+                            <div className="flex gap-3">
+                                <Link href="#" className="w-8 h-8 rounded bg-graphite border border-gray-800 flex items-center justify-center text-text_muted hover:text-text_main hover:border-gray-600 transition-all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></Link>
+                                <Link href="/community" className="h-8 px-3 rounded bg-graphite border border-gray-800 flex items-center justify-center text-xs font-semibold text-text_muted hover:text-text_main hover:border-gray-600 transition-all">Discord</Link>
+                                <Link href="/community" className="h-8 px-3 rounded bg-graphite border border-gray-800 flex items-center justify-center text-xs font-semibold text-text_muted hover:text-text_main hover:border-gray-600 transition-all">Telegram</Link>
+                            </div>
+                        </div>
+
+                        <div className="col-span-1">
+                            <h4 className="text-[11px] font-mono text-text_muted uppercase tracking-widest mb-6">Product</h4>
+                            <ul className="flex flex-col gap-4 text-sm text-text_muted">
+                                <li><Link href="#features" className="hover:text-emerald transition-colors">Features</Link></li>
+                                <li><Link href="/pricing" className="hover:text-emerald transition-colors">Pricing</Link></li>
+                                <li><Link href="#workflow" className="hover:text-emerald transition-colors">How It Works</Link></li>
+                                <li><Link href="/changelog" className="hover:text-emerald transition-colors">Changelog</Link></li>
+                            </ul>
+                        </div>
+
+                        <div className="col-span-1">
+                            <h4 className="text-[11px] font-mono text-text_muted uppercase tracking-widest mb-6">Resources</h4>
+                            <ul className="flex flex-col gap-4 text-sm text-text_muted">
+                                <li><Link href="/docs" className="hover:text-emerald transition-colors">Documentation</Link></li>
+                                <li><Link href="/docs/api" className="hover:text-emerald transition-colors">API Reference</Link></li>
+                                <li><Link href="/community" className="hover:text-emerald transition-colors">Community</Link></li>
+                                <li><Link href="/contact" className="hover:text-emerald transition-colors">Support</Link></li>
+                            </ul>
+                        </div>
+
+                        <div className="col-span-1">
+                            <h4 className="text-[11px] font-mono text-text_muted uppercase tracking-widest mb-6">Company</h4>
+                            <ul className="flex flex-col gap-4 text-sm text-text_muted">
+                                <li><Link href="/privacy" className="hover:text-emerald transition-colors">Privacy Policy</Link></li>
+                                <li><Link href="/terms" className="hover:text-emerald transition-colors">Terms of Service</Link></li>
+                                <li><Link href="/contact" className="hover:text-emerald transition-colors">Contact Sales</Link></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-border_dim pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-text_muted reveal delay-200">
+                        <p>&copy; 2026 TraderX Pro. All rights reserved.</p>
+                        <p>Built with <span className="text-emerald">♥</span> for traders worldwide.</p>
+                    </div>
+                </footer>
+            </section>
+        </div>
+    );
 }

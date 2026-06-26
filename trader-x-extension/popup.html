@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
     * {
       margin: 0;
       padding: 0;
@@ -12,15 +14,15 @@
 
     body {
       width: 360px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #050505;
       color: #F9FAFB;
     }
 
     .header {
       padding: 16px;
-      background: rgba(59, 130, 246, 0.15);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(16, 185, 129, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -28,16 +30,27 @@
 
     .logo {
       font-size: 18px;
-      font-weight: bold;
-      color: #60A5FA;
+      font-weight: 800;
+      color: #10B981;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .logo svg {
+      width: 16px;
+      height: 16px;
     }
 
     .market-status {
-      font-size: 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
       color: #9CA3AF;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       padding: 4px 10px;
       border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .stats {
@@ -45,32 +58,41 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       padding: 16px;
-      background: rgba(0, 0, 0, 0.2);
+      background: #0A0A0A;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .stat {
       text-align: center;
       padding: 12px 8px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(18, 18, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03);
       border-radius: 8px;
+      transition: border-color 0.2s ease;
+    }
+
+    .stat:hover {
+      border-color: rgba(16, 185, 129, 0.2);
     }
 
     .stat-label {
-      font-size: 10px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
       color: #9CA3AF;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #60A5FA;
+      font-size: 20px;
+      font-weight: 700;
+      color: #F9FAFB;
       margin-top: 4px;
     }
 
     .section {
       padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .section:last-child {
@@ -78,11 +100,17 @@
     }
 
     .section-title {
-      font-size: 12px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
       color: #9CA3AF;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
       margin-bottom: 12px;
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
     }
 
     .toggle-row {
@@ -93,14 +121,17 @@
     }
 
     .toggle-label {
-      font-size: 14px;
+      font-size: 13px;
       color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .toggle {
       position: relative;
-      width: 44px;
-      height: 24px;
+      width: 40px;
+      height: 22px;
     }
 
     .toggle input {
@@ -116,34 +147,36 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: #374151;
+      background: #2b2b2b;
       border-radius: 24px;
       transition: 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .toggle-slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background: white;
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background: #9CA3AF;
       border-radius: 50%;
       transition: 0.3s;
     }
 
     .toggle input:checked+.toggle-slider {
-      background: #3B82F6;
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10B981;
     }
 
     .toggle input:checked+.toggle-slider:before {
-      transform: translateX(20px);
+      transform: translateX(18px);
+      background: #10B981;
     }
 
-    /* Watchlist Section - Enhanced */
     .watchlist-section {
-      background: rgba(16, 185, 129, 0.1);
+      background: rgba(18, 18, 18, 0.4);
     }
 
     .watchlist-input-row {
@@ -154,12 +187,14 @@
 
     input[type="text"] {
       flex: 1;
-      padding: 12px 14px;
-      border: 2px solid #374151;
-      border-radius: 8px;
-      background: #1F2937;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      background: #121212;
       color: #F9FAFB;
-      font-size: 14px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
     }
 
     input[type="text"]::placeholder {
@@ -169,43 +204,52 @@
     input[type="text"]:focus {
       outline: none;
       border-color: #10B981;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3);
     }
 
     .btn {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 8px;
+      padding: 10px 16px;
+      border: 1px solid transparent;
+      border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .btn-success {
       background: #10B981;
-      color: white;
+      color: #042617;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
 
     .btn-success:hover {
-      background: #059669;
+      background: #00E676;
     }
 
     .btn-primary {
-      background: #3B82F6;
-      color: white;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+      border-color: rgba(16, 185, 129, 0.3);
     }
 
     .btn-primary:hover {
-      background: #2563EB;
+      background: rgba(16, 185, 129, 0.2);
     }
 
     .btn-secondary {
-      background: #374151;
+      background: #121212;
       color: #E5E7EB;
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     .btn-secondary:hover {
-      background: #4B5563;
+      background: #1a1a1a;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .btn-full {
@@ -219,12 +263,14 @@
     }
 
     .tag {
-      background: #3B82F6;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 13px;
+      background: #121212;
+      color: #E5E7EB;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -233,7 +279,9 @@
     }
 
     .tag:hover {
-      background: #EF4444;
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #EF4444;
+      color: #EF4444;
     }
 
     .tag-remove {
@@ -245,21 +293,26 @@
       text-align: center;
       color: #6B7280;
       padding: 16px;
-      font-size: 13px;
+      font-size: 12px;
+      width: 100%;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      border: 1px dashed rgba(255,255,255,0.1);
     }
 
     .help-text {
-      font-size: 12px;
+      font-size: 11px;
       color: #6B7280;
       margin-top: 8px;
     }
 
     .success-msg {
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.1);
       color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
       padding: 8px 12px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       margin-top: 8px;
       display: none;
     }
@@ -268,25 +321,33 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      background: #0A0A0A;
     }
 
     .footer {
       padding: 12px 16px;
-      background: rgba(0, 0, 0, 0.2);
+      background: #050505;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
       text-align: center;
-      font-size: 11px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
       color: #6B7280;
     }
 
     .footer a {
-      color: #60A5FA;
+      color: #10B981;
       text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      color: #00E676;
     }
 
     /* Search Section */
     .search-section {
-      background: rgba(59, 130, 246, 0.1);
+      background: #0A0A0A;
     }
 
     .search-input-row {
@@ -296,7 +357,7 @@
 
     .search-status {
       margin-top: 8px;
-      font-size: 12px;
+      font-size: 11px;
       color: #9CA3AF;
     }
 
@@ -308,7 +369,12 @@
 
 <body>
   <div class="header">
-    <span class="logo">⚡ TraderX</span>
+    <span class="logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="#10B981"/>
+      </svg>
+      TraderX
+    </span>
     <span class="market-status" id="market-status">Loading...</span>
   </div>
 
@@ -329,7 +395,7 @@
 
   <!-- SEARCH SECTION -->
   <div class="section search-section">
-    <div class="section-title">🔍 Search Ticker on Page</div>
+    <div class="section-title">Search Ticker</div>
     <div class="search-input-row">
       <input type="text" id="search-input" placeholder="Enter ticker (BTC, TSLA...)">
       <button class="btn btn-primary" id="search-btn">Search</button>
@@ -339,14 +405,14 @@
 
   <!-- WATCHLIST SECTION -->
   <div class="section watchlist-section">
-    <div class="section-title">➕ Add to Watchlist</div>
+    <div class="section-title">Add to Watchlist</div>
     <div class="watchlist-input-row">
-      <input type="text" id="ticker-input" placeholder="Type ticker (e.g., AAPL, BTC, NVDA)">
+      <input type="text" id="ticker-input" placeholder="Type ticker (e.g., AAPL)">
       <button class="btn btn-success" id="add-ticker">Add</button>
     </div>
     <div class="success-msg" id="add-success">✓ Ticker added!</div>
-    <div class="help-text">💡 Add tickers to highlight them in your feed</div>
-    <div style="margin-top: 12px;">
+    <div class="help-text">Add tickers to highlight them in your feed</div>
+    <div style="margin-top: 16px;">
       <div class="section-title" style="margin-bottom: 8px;">Your Watchlist</div>
       <div class="watchlist-tags" id="watchlist-container">
         <div class="empty-state">No tickers yet - add one above!</div>
@@ -399,7 +465,7 @@
   </div>
 
   <div class="footer">
-    TraderX v1.1.0 · <a href="#" id="view-alerts">View Alert History</a>
+    TraderX Pro v4.0 · <a href="#" id="view-alerts">View Alerts</a>
   </div>
 
   <script src="popup.js"></script>
